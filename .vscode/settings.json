@@ -1,0 +1,42 @@
+{
+    // Display formatting aid
+	"editor.rulers": [79, 120],
+
+	"[git-commit]": {
+		"editor.rulers": [50]
+	},
+
+    // Prevent CMAKE PopUp
+    "cmake.configureOnOpen": false,
+
+	// ROS Extension
+	"ros.distro": "iron",
+
+	// 
+	"files.associations": {
+		"*.toml": "ini",
+		"bitset": "cpp",
+		"array": "cpp",
+		"string": "cpp",
+		"string_view": "cpp",
+		"new": "cpp"
+	},
+
+	// User Spellcheck Dictionary
+	"cSpell.words": [
+		"blackman",
+		"clkdiv",
+		"cmplx",
+		"dreq",
+		"DREQ",
+		"fourier",
+		"goertzel",
+		"gpio",
+		"hexdump",
+		"INFRALOC",
+		"Philhower",
+		"Pico",
+		"PICO",
+		"tparam"
+	]
+}
