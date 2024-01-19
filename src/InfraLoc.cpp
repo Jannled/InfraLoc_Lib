@@ -11,8 +11,11 @@
 #include <hardware/dma.h>
 
 template<size_t N>
-InfraLoc<N>::InfraLoc(uint8_t adc_pin, uint8_t mux0, uint8_t mux1, uint8_t mux2, uint8_t mux3, uint16_t k)
-	: adc_pin(adc_pin), mux_0(mux0), mux_1(mux1), mux_2(mux2), mux_3(mux3), currentChannel(0), captureBuff({{0}}), k(k)
+InfraLoc<N>::InfraLoc(uint8_t adc_pin, uint8_t mux0, uint8_t mux1, uint8_t mux2, uint8_t mux3, uint16_t k, 
+	const uint16_t sample_freq
+)
+	: adc_pin(adc_pin), mux_0(mux0), mux_1(mux1), mux_2(mux2), mux_3(mux3), currentChannel(0), captureBuff({{0}}), k(k),
+		sample_freq(sample_freq)
 {
 	this->captureBuff.fill(1337u);
 	enableADC_DMA(adc_pin);
@@ -63,7 +66,7 @@ void InfraLoc<N>::switchChannels(uint8_t channel)
 }
 
 template<size_t N>
-number_t InfraLoc<N>::getFrequencyComponent(const float k)
+number_t InfraLoc<N>::getFrequencyComponent(const float k, const uint8_t channel)
 {
 	return euclideanDistance(goertzelAlgorithm(this->captureBuff.data(), this->captureBuff.size(), k));
 }
@@ -82,9 +85,8 @@ void InfraLoc<N>::update()
 		switchChannels(c);
 
 		// Pull all the desired frequencies
-		this->results[c] = euclideanDistance(goertzelAlgorithm(this->captureBuff.data(), N, this->k));
+		this->results[c] = getFrequencyComponent(this.k, c);
 
-		this->captureBuff.fill(1337);
 		// Start the next
 		startSampling();
 	}
@@ -112,6 +114,55 @@ bool InfraLoc<N>::isSampleBufferFilledBlocking()
 }
 
 template<size_t N>
+void InfraLoc<N>::enableADC_DMA(const uint8_t adc_channel)
+{
+	#if defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_ARCH_RP2040)
+	// https://github.com/raspberrypi/pico-examples/blob/master/adc/dma_capture/dma_capture.c
+	adc_gpio_init(adc_channel);
+
+	adc_init();
+	adc_select_input((uint8_t) adc_channel - FIRST_ADC_PIN);
+	adc_fifo_setup(
+		true,	// Write each completed conversion to the sample FIFO
+		true,	// Enable DMA data request (DREQ)
+		1,		// DREQ (and IRQ) asserted when at least 1 sample present
+		true,	// We won't see the ERR bit because of 8 bit reads; disable.
+		false	// Shift each sample to 8 bits when pushing to FIFO
+	);
+
+	// Divisor of 0 -> full speed. Free-running capture with the divider is
+	// equivalent to pressing the ADC_CS_START_ONCE button once per `div + 1`
+	// cycles (div not necessarily an integer). Each conversion takes 96
+	// cycles, so in general you want a divider of 0 (hold down the button
+	// continuously) or > 95 (take samples less frequently than 96 cycle
+	// intervals). This is all timed by the 48 MHz ADC clock.
+	adc_set_clkdiv(48000000/sample_freq); // SAMPLE_FREQ = 48.000.000 / clkdiv
+
+	// Set up the DMA to start transferring data as soon as it appears in FIFO
+	this->dma_chan_used = dma_claim_unused_channel(true);
+	dma_channel_config cfg = dma_channel_get_default_config(this->dma_chan_used);
+
+	// Reading from constant address, writing to incrementing byte addresses
+	channel_config_set_transfer_data_size(&cfg, DMA_SIZE_16);
+	channel_config_set_read_increment(&cfg, false);
+	channel_config_set_write_increment(&cfg, true);
+
+	// Pace transfers based on availability of ADC samples
+	channel_config_set_dreq(&cfg, DREQ_ADC);
+
+	dma_channel_configure(this->dma_chan_used, &cfg,
+		this->captureBuff.data(), 	// dst
+		&adc_hw->fifo, 				// src
+		N, 		            		// transfer count
+		true 						// start immediately
+	);
+	#else
+	#error This library only supports the Pi Pico right now.
+	#endif
+}
+
+/*
+template<size_t N>
 void InfraLoc<N>::printArray(std::array<unsigned int, N> &arr)
 {	
 	Serial.print("[");
@@ -138,53 +189,6 @@ void InfraLoc<N>::printArray(std::array<uint16_t, N> &arr)
 	}
 	Serial.println("]");
 }
-
-template<size_t N>
-void InfraLoc<N>::enableADC_DMA(const uint8_t adc_channel)
-{
-	#if defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_ARCH_RP2040)
-	// https://github.com/raspberrypi/pico-examples/blob/master/adc/dma_capture/dma_capture.c
-	adc_gpio_init((uint8_t) adc_channel - FIRST_ADC_PIN);
-
-	adc_init();
-	adc_select_input(adc_channel);
-	adc_fifo_setup(
-		true,	// Write each completed conversion to the sample FIFO
-		true,	// Enable DMA data request (DREQ)
-		1,		// DREQ (and IRQ) asserted when at least 1 sample present
-		true,	// We won't see the ERR bit because of 8 bit reads; disable.
-		false	// Shift each sample to 8 bits when pushing to FIFO
-	);
-
-	// Divisor of 0 -> full speed. Free-running capture with the divider is
-	// equivalent to pressing the ADC_CS_START_ONCE button once per `div + 1`
-	// cycles (div not necessarily an integer). Each conversion takes 96
-	// cycles, so in general you want a divider of 0 (hold down the button
-	// continuously) or > 95 (take samples less frequently than 96 cycle
-	// intervals). This is all timed by the 48 MHz ADC clock.
-	adc_set_clkdiv(240); // ? / 48000000 = 1/200000
-
-	// Set up the DMA to start transferring data as soon as it appears in FIFO
-	this->dma_chan_used = dma_claim_unused_channel(true);
-	dma_channel_config cfg = dma_channel_get_default_config(this->dma_chan_used);
-
-	// Reading from constant address, writing to incrementing byte addresses
-	channel_config_set_transfer_data_size(&cfg, DMA_SIZE_16);
-	channel_config_set_read_increment(&cfg, false);
-	channel_config_set_write_increment(&cfg, true);
-
-	// Pace transfers based on availability of ADC samples
-	channel_config_set_dreq(&cfg, DREQ_ADC);
-
-	dma_channel_configure(this->dma_chan_used, &cfg,
-		this->captureBuff.data(), 	// dst
-		&adc_hw->fifo, 				// src
-		N, 		            		// transfer count
-		true 						// start immediately
-	);
-	#else
-	#error This library only supports the Pi Pico right now.
-	#endif
-}
+*/
 
 template class InfraLoc<512>;

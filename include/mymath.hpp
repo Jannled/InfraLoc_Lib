@@ -140,6 +140,10 @@ number_t* blackmanWindow(number_t* values, size_t N);
 
 /**
  * @brief Goertzel Algorithm
+ * Implementation by Microstar Laboratories
+ * https://www.mstarlabs.com/dsp/goertzel/goertzel.html
+ * 
+ * Referencing the following sources
  * https://gist.github.com/sebpiq/4128537
  * https://web.archive.org/web/20121113163511/http://www.embedded.com:80/Home/PrintView?contentItemId=4024443
  * https://www.embedded.com/the-goertzel-algorithm/

@@ -30,12 +30,15 @@ private:
 	#endif
 
 public:
-	InfraLoc(const uint8_t adc_pin, const uint8_t mux0, const uint8_t mux1, const uint8_t mux2, const uint8_t mux3, const uint16_t k);
+	InfraLoc(const uint8_t adc_pin, const uint8_t mux0, const uint8_t mux1, 
+		const uint8_t mux2, const uint8_t mux3, const uint16_t k, const uint16_t sample_freq
+	);
 	~InfraLoc();
 
 	std::array<number_t, INFRALOC_NUM_CHANNELS> results;
 	std::array<uint16_t, N> captureBuff;
 	uint16_t k;
+	uint16_t sample_freq;
 
 	void startSampling();
 	void stopSampling();
@@ -43,12 +46,12 @@ public:
 	bool isSampleBufferFilled();
 	bool isSampleBufferFilledBlocking();
 	
-	number_t getFrequencyComponent(const float k);
+	number_t getFrequencyComponent(const float k, const uint8_t channel);
 
 	void update();
 
-	void printArray(std::array<unsigned int, N> &arr);
-	void printArray(std::array<uint16_t, N> &arr);
+	/*void printArray(std::array<unsigned int, N> &arr);
+	void printArray(std::array<uint16_t, N> &arr);*/
 };
 
 #endif // INFRALOC_CPP

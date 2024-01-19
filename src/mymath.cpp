@@ -97,6 +97,7 @@ number_t* blackmanWindow(number_t* values, size_t N)
 
 cmplx_t goertzelAlgorithm(uint16_t* values, unsigned int N, unsigned int k)
 {
+	// https://www.mstarlabs.com/dsp/goertzel/goertzel.html
 	number_t W_re = 2 * cos(2 * MY_PI * k / N);
 	number_t W_im = sin(2 * MY_PI * k / N);
 
