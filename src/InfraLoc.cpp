@@ -12,12 +12,12 @@
 
 template<size_t N>
 InfraLoc<N>::InfraLoc(uint8_t adc_pin, uint8_t mux0, uint8_t mux1, uint8_t mux2, uint8_t mux3, uint16_t k, 
-	const uint16_t sample_freq
-)
+	const uint16_t sample_freq)
 	: adc_pin(adc_pin), mux_0(mux0), mux_1(mux1), mux_2(mux2), mux_3(mux3), currentChannel(0), captureBuff({{0}}), k(k),
 		sample_freq(sample_freq)
 {
-	this->captureBuff.fill(1337u);
+	for(size_t i=0; i<this->captureBuff.size(); i++)
+		this->captureBuff[i].fill(1337u);
 	enableADC_DMA(adc_pin);
 }
 
@@ -28,7 +28,7 @@ InfraLoc<N>::~InfraLoc()
 }
 
 template<size_t N>
-void InfraLoc<N>::startSampling()
+void InfraLoc<N>::startSampling(uint16_t* buffer, size_t numSamples)
 {
 	#if defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_ARCH_RP2040)
 	adc_run(true);
@@ -36,10 +36,10 @@ void InfraLoc<N>::startSampling()
 	dma_channel_config cfg = dma_get_channel_config(this->dma_chan_used);
 
 	dma_channel_configure(this->dma_chan_used, &cfg,
-		this->captureBuff.data(), 	// dst
-		&adc_hw->fifo, 				// src
-		N, 		            		// transfer count
-		true 						// start immediately
+		buffer, 		// dst
+		&adc_hw->fifo, 	// src
+		numSamples, 	// transfer count
+		true 			// start immediately
 	);
 
 	#else
@@ -68,28 +68,33 @@ void InfraLoc<N>::switchChannels(uint8_t channel)
 template<size_t N>
 number_t InfraLoc<N>::getFrequencyComponent(const float k, const uint8_t channel)
 {
-	return euclideanDistance(goertzelAlgorithm(this->captureBuff.data(), this->captureBuff.size(), k));
+	std::array<uint16_t, N> buff = this->captureBuff.at(channel);
+	return euclideanDistance(goertzelAlgorithm(buff.data(), buff.size(), k));
 }
 
 template<size_t N>
 void InfraLoc<N>::update()
 {
 	// Fill the sample buffer as fast as possible
-	for(uint8_t c = 0; c<INFRALOC_NUM_CHANNELS; c++)
+	for(uint8_t channel = 0; channel<INFRALOC_NUM_CHANNELS; channel++)
 	{
+		// Select the desired channel and wait for MUX to complete
+		switchChannels(channel);
+		delayMicroseconds(2);
+
+		// Start to collect data
+		startSampling(this->captureBuff[channel].data(), N);
+
 		// Wait until all samples are collected
 		this->isSampleBufferFilledBlocking();
 
 		// Stop adc data collection and select the next channel
 		stopSampling();
-		switchChannels(c);
-
-		// Pull all the desired frequencies
-		this->results[c] = getFrequencyComponent(this.k, c);
-
-		// Start the next
-		startSampling();
 	}
+
+	// Pull all the desired frequencies
+	for(uint8_t c=0; c<INFRALOC_NUM_CHANNELS; c++)
+		this->results[c] = getFrequencyComponent(this->k, c);
 }
 
 template<size_t N>
@@ -191,4 +196,7 @@ void InfraLoc<N>::printArray(std::array<uint16_t, N> &arr)
 }
 */
 
+template class InfraLoc<128>;
+template class InfraLoc<256>;
 template class InfraLoc<512>;
+template class InfraLoc<1024>;
