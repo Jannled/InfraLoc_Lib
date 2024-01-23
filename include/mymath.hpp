@@ -150,4 +150,9 @@ number_t* blackmanWindow(number_t* values, size_t N);
 */
 cmplx_t goertzelAlgorithm(uint16_t* values, unsigned int N, unsigned int k);
 
+uint32_t calculateK(uint32_t sampleFreq, uint32_t targetFreq)
+{
+	return sampleFreq / targetFreq;
+}
+
 #endif // MY_MATH_H

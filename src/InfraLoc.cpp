@@ -11,13 +11,15 @@
 #include <hardware/dma.h>
 
 template<size_t N>
-InfraLoc<N>::InfraLoc(uint8_t adc_pin, uint8_t mux0, uint8_t mux1, uint8_t mux2, uint8_t mux3, uint16_t k, 
-	const uint16_t sample_freq)
+InfraLoc<N>::InfraLoc(uint8_t adc_pin, uint8_t mux0, uint8_t mux1, uint8_t mux2, uint8_t mux3, uint32_t k, 
+	const uint32_t sample_freq)
 	: adc_pin(adc_pin), mux_0(mux0), mux_1(mux1), mux_2(mux2), mux_3(mux3), currentChannel(0), captureBuff({{0}}), k(k),
 		sample_freq(sample_freq)
 {
 	for(size_t i=0; i<this->captureBuff.size(); i++)
 		this->captureBuff[i].fill(1337u);
+
+	configureMUX();
 	enableADC_DMA(adc_pin);
 }
 
@@ -116,6 +118,15 @@ bool InfraLoc<N>::isSampleBufferFilledBlocking()
 	#else
 	#error This library only supports the Pi Pico right now.
 	#endif
+}
+
+template<size_t N>
+void InfraLoc<N>::configureMUX()
+{
+	pinMode(this->mux_0, OUTPUT);
+	pinMode(this->mux_1, OUTPUT);
+	pinMode(this->mux_2, OUTPUT);
+	pinMode(this->mux_3, OUTPUT);
 }
 
 template<size_t N>

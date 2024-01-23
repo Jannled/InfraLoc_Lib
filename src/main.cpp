@@ -4,11 +4,14 @@
 
 #include "InfraLoc.hpp"
 #include "hardware/adc.h"
+
+#ifdef MICRO_ROS_ENABLED
 #include "InfraLoc_Node.hpp"
+#endif
 
 #define CAPTURE_DEPTH 512
 
-#define SAMPLE_FREQ 20000 // 20kHz
+#define SAMPLE_FREQ 200000u // 200kHz
 #define FREQ_BIN 204
 
 constexpr uint8_t MUX_S0 = 9u;
@@ -36,7 +39,7 @@ void printArray(std::array<number_t, 16> &arr, int k)
 }
 
 void setup()
-{	
+{
 	// Enable Serial, it might be needed by microROS
 	Serial.begin(115200);
 
@@ -46,16 +49,20 @@ void setup()
 
 	delay(100);
 
-	init_infra_node();ent library, for context at address: %p", (void *) context);
-
+	#ifdef MICRO_ROS_ENABLED
+	init_infra_node();
+	#endif
 }
 
 void loop()
 {
 	digitalWrite(LED_BUILTIN, HIGH);
 
+	#ifdef MICRO_ROS_ENABLED
 	update_infra_node();
-	//frequencySweep();
+	#endif
+
+	frequencySweep();
 }
 
 void frequencySweep()

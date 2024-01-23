@@ -1,3 +1,4 @@
+#ifdef MICRO_ROS_ENABLED
 #include "InfraLoc_Node.hpp"
 
 #include <Arduino.h>
@@ -23,7 +24,7 @@ int createInfralocService()
 {
 	// Service server object
 	rcl_service_t service;
-	const char *service_name = "/addtwoints";
+	const char *service_name = "/beacon_angle";
 
 	// Get message type support
 	const rosidl_service_type_support_t *type_support =
@@ -139,3 +140,4 @@ int update_infra_node()
 	// Spin executor to receive requests
 	return rclc_executor_spin(&executor);
 }
+#endif // ROS2_ENABLED

@@ -23,6 +23,7 @@ private:
 
 	uint8_t currentChannel;
 
+	void configureMUX();
 	void enableADC_DMA(const uint8_t adc_channel);
 
 	#if defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_ARCH_RP2040)
@@ -31,14 +32,14 @@ private:
 
 public:
 	InfraLoc(const uint8_t adc_pin, const uint8_t mux0, const uint8_t mux1, 
-		const uint8_t mux2, const uint8_t mux3, const uint16_t k, const uint16_t sample_freq
+		const uint8_t mux2, const uint8_t mux3, const uint32_t k, const uint32_t sample_freq
 	);
 	~InfraLoc();
 
 	std::array<number_t, INFRALOC_NUM_CHANNELS> results;
 	std::array<std::array<uint16_t, N>, INFRALOC_NUM_CHANNELS> captureBuff;
-	uint16_t k;
-	uint16_t sample_freq;
+	uint32_t k;
+	uint32_t sample_freq;
 
 	void startSampling(uint16_t* buffer, size_t numSamples);
 	void stopSampling();

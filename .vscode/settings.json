@@ -19,7 +19,8 @@
 		"array": "cpp",
 		"string": "cpp",
 		"string_view": "cpp",
-		"new": "cpp"
+		"new": "cpp",
+		"*.tcc": "cpp"
 	},
 
 	// Disable stupid GitLens features
@@ -33,18 +34,22 @@
 		"cmplx",
 		"dreq",
 		"DREQ",
+		"fftfreq",
 		"figsize",
 		"fourier",
 		"goertzel",
 		"gpio",
 		"hexdump",
 		"INFRALOC",
+		"microros",
 		"Microstar",
 		"Philhower",
 		"Pico",
 		"PICO",
+		"platformio",
 		"RCCHECK",
 		"rclc",
+		"ROSIDL",
 		"tparam"
 	]
 }
