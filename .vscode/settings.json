@@ -12,7 +12,7 @@
 	// ROS Extension
 	"ros.distro": "iron",
 
-	// 
+	// PlatformIO stuff?
 	"files.associations": {
 		"*.toml": "ini",
 		"bitset": "cpp",
@@ -21,6 +21,10 @@
 		"string_view": "cpp",
 		"new": "cpp"
 	},
+
+	// Disable stupid GitLens features
+	"gitlens.ai.experimental.generateCommitMessage.enabled": false,
+	"gitlens.ai.experimental.openai.url": null,
 
 	// User Spellcheck Dictionary
 	"cSpell.words": [
@@ -39,6 +43,8 @@
 		"Philhower",
 		"Pico",
 		"PICO",
+		"RCCHECK",
+		"rclc",
 		"tparam"
 	]
 }

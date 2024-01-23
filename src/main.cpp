@@ -4,6 +4,7 @@
 
 #include "InfraLoc.hpp"
 #include "hardware/adc.h"
+#include "InfraLoc_Node.hpp"
 
 #define CAPTURE_DEPTH 512
 
@@ -35,20 +36,26 @@ void printArray(std::array<number_t, 16> &arr, int k)
 }
 
 void setup()
-{
+{	
+	// Enable Serial, it might be needed by microROS
 	Serial.begin(115200);
+
 	pinMode(LED_BUILTIN, OUTPUT);
 
 	infraLoc = new InfraLoc<CAPTURE_DEPTH>(ADC_PIN, MUX_S0, MUX_S1, MUX_S2, MUX_S3, FREQ_BIN, SAMPLE_FREQ);
 
 	delay(100);
+
+	init_infra_node();ent library, for context at address: %p", (void *) context);
+
 }
 
 void loop()
 {
 	digitalWrite(LED_BUILTIN, HIGH);
 
-	frequencySweep();
+	update_infra_node();
+	//frequencySweep();
 }
 
 void frequencySweep()
