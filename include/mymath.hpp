@@ -150,9 +150,22 @@ number_t* blackmanWindow(number_t* values, size_t N);
 */
 cmplx_t goertzelAlgorithm(uint16_t* values, unsigned int N, unsigned int k);
 
-uint32_t calculateK(uint32_t sampleFreq, uint32_t targetFreq)
-{
-	return sampleFreq / targetFreq;
-}
+/**
+ * @brief Return the center frequency of the selected FFT bin.
+ * @param sampleCount The number of discrete samples collected from the signal.
+ * @param sampleFreq The frequency in hertz at which the signal was sampled.
+ * @param k The FFT frequency bin. Should be in range from `0` to `sampleCount/2`.
+ * @return The center frequency in Hertz.
+ */
+number_t calculateFrequencyCenter(size_t sampleCount, number_t sampleFreq, number_t k);
+
+/**
+ * @brief 
+ * @param sampleCount 
+ * @param sampleFreq 
+ * @param targetFreq 
+ * @return 
+ */
+number_t calculateK(size_t sampleCount, number_t sampleFreq, number_t targetFreq);
 
 #endif // MY_MATH_H

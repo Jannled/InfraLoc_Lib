@@ -17,34 +17,13 @@ rcl_node_t node;
 void error_loop() {
 	while(1) {
 		delay(100);
+		digitalWrite(LED_BUILTIN, LOW);
+		delay(100);
+		digitalWrite(LED_BUILTIN, HIGH);
 	}
 }
 
-int createInfralocService()
-{
-	// Service server object
-	rcl_service_t service;
-	const char *service_name = "/beacon_angle";
-
-	// Get message type support
-	const rosidl_service_type_support_t *type_support =
-		ROSIDL_GET_SRV_TYPE_SUPPORT(infraloc_interfaces, srv, BeaconAngle);
-
-	// Initialize server with default configuration
-	rcl_ret_t rc = rclc_service_init_default(
-		&service, &node,
-		type_support, service_name);
-
-	if (rc != RCL_RET_OK)
-	{
-		return -1;
-	}
-
-	return RCL_RET_OK;
-}
-
-// Implementation example:
-void service_callback(const void *request_msg, void *response_msg)
+void callback_beacon_angle(const void *request_msg, void *response_msg)
 {
 	// Cast messages to expected types
 	infraloc_interfaces__srv__BeaconAngle_Request *request =
@@ -57,77 +36,50 @@ void service_callback(const void *request_msg, void *response_msg)
 	response->angle = k;
 }
 
-rcl_ret_t whatever2(rclc_support_t * support,
-  int argc,
-  char const * const * argv,
-  rcl_init_options_t * init_options,
-  rcl_allocator_t * allocator)
+int createInfralocService()
 {
+	// Service server object
+	rcl_service_t service;
+	const char* service_name = "/beacon_angle";
 
-	RCL_CHECK_FOR_NULL_WITH_MSG(
-		support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-	RCL_CHECK_FOR_NULL_WITH_MSG(
-		init_options, "init_options is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-	RCL_CHECK_FOR_NULL_WITH_MSG(
-		allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-	rcl_ret_t rc = RCL_RET_OK;
+	// Get message type support
+	const rosidl_service_type_support_t *type_support =
+		ROSIDL_GET_SRV_TYPE_SUPPORT(infraloc_interfaces, srv, BeaconAngle);
 
-	support->context = rcl_get_zero_initialized_context();
-	rc = rcl_init(argc, argv, init_options, &support->context);
-	if (rc != RCL_RET_OK)
-	{
-		PRINT_RCLC_ERROR(rclc_init, rcl_init);
+	// Initialize server with default configuration
+	rcl_ret_t rc = rclc_service_init_default(
+		&service, &node,
+		type_support, service_name);
+
+	if(rc != RCL_RET_OK)
 		return rc;
-	}
-	support->allocator = allocator;
 
-	rc = rcl_clock_init(RCL_STEADY_TIME, &support->clock, support->allocator);
-	if (rc != RCL_RET_OK)
-	{
-		PRINT_RCLC_ERROR(rclc_init, rcl_clock_init);
-	}
-	return rc;
+	// Service message objects
+	infraloc_interfaces__srv__BeaconAngle_Response response_msg;
+	infraloc_interfaces__srv__BeaconAngle_Request request_msg;
+
+	// Add server callback to the executor
+	rc = rclc_executor_add_service(&executor, &service, &request_msg,
+		&response_msg, callback_beacon_angle
+	);
+
+	if(rc != RCL_RET_OK)
+		return rc;
+
+	return RCL_RET_OK;
 }
 
-rcl_ret_t whatever(rclc_support_t * support, int argc, char const * const * argv, rcl_allocator_t * allocator)
-{
-	RCL_CHECK_FOR_NULL_WITH_MSG(
-		support, "support is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-	RCL_CHECK_FOR_NULL_WITH_MSG(
-		allocator, "allocator is a null pointer", return RCL_RET_INVALID_ARGUMENT);
-	rcl_ret_t rc = RCL_RET_OK;
-
-	rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-	rc = rcl_init_options_init(&init_options, (*allocator));
-	if (rc != RCL_RET_OK)
-	{
-		PRINT_RCLC_ERROR(rclc_support_init, rcl_init_options_init);
-		return rc;
-	}
-
-	rc = whatever2(support, argc, argv, &init_options, allocator);
-	if (rcl_init_options_fini(&init_options) != RCL_RET_OK)
-	{
-		PRINT_RCLC_ERROR(rclc_support_init, rcl_init_options_fini);
-	}
-
-	return rc;
-}
-
-
-int init_infra_node()
+int initInfraNode()
 {
 	set_microros_serial_transports(Serial);
 
 	allocator = rcl_get_default_allocator();
 
 	//create init_options
-	rcl_ret_t test = whatever(&support, 0, NULL, &allocator);
-	if(test != RCL_RET_OK)
-		Serial.print("ERR");
+	RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
 
 	// create node
-	RCCHECK(rclc_node_init_default(&node, "micro_ros_platformio_node", "", &support));
+	RCCHECK(rclc_node_init_default(&node, "infraloc", "", &support));
 
 	createInfralocService();
 
@@ -135,9 +87,10 @@ int init_infra_node()
 }
 
 
-int update_infra_node()
+int updateInfraNode()
 {
 	// Spin executor to receive requests
 	return rclc_executor_spin(&executor);
 }
+
 #endif // ROS2_ENABLED

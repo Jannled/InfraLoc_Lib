@@ -12,6 +12,11 @@
 	// ROS Extension
 	"ros.distro": "iron",
 
+	// C / C++ Extension
+	//"C_Cpp.codeAnalysis.runAutomatically": true,
+	"C_Cpp.doxygen.generatedStyle": "/**",
+	"C_Cpp.doxygen.generateOnType": true,
+
 	// PlatformIO stuff?
 	"files.associations": {
 		"*.toml": "ini",
@@ -51,5 +56,6 @@
 		"rclc",
 		"ROSIDL",
 		"tparam"
-	]
+	],
+	"C_Cpp.intelliSenseEngineFallback": "enabled"
 }

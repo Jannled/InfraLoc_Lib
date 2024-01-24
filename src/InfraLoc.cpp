@@ -1,5 +1,8 @@
 #include "InfraLoc.hpp"
 
+// C standard libraries
+#include <stdint.h>
+
 // C++ standard libraries
 #include <bitset>         // std::bitset
 

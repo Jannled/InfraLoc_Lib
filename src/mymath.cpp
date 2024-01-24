@@ -114,3 +114,13 @@ cmplx_t goertzelAlgorithm(uint16_t* values, unsigned int N, unsigned int k)
 	const cmplx_t res = {0.5f*W_re*d1 - d2, W_im*d1};
 	return res;
 }
+
+number_t calculateFrequencyCenter(size_t sampleCount, number_t sampleFreq, number_t k)
+{
+	return (sampleFreq * k) / sampleCount;
+}
+
+number_t calculateK(size_t sampleCount, number_t sampleFreq, number_t targetFreq)
+{
+	return (targetFreq * sampleCount) / sampleFreq;
+}

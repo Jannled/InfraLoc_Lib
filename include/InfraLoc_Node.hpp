@@ -8,7 +8,7 @@
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
-int init_infra_node();
-int update_infra_node();
+int initInfraNode();
+int updateInfraNode();
 
 #endif // INFRALOC_MICRO_ROS_NODE_H

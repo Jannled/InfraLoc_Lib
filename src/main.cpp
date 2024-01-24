@@ -50,7 +50,7 @@ void setup()
 	delay(100);
 
 	#ifdef MICRO_ROS_ENABLED
-	init_infra_node();
+	initInfraNode();
 	#endif
 }
 
@@ -59,10 +59,10 @@ void loop()
 	digitalWrite(LED_BUILTIN, HIGH);
 
 	#ifdef MICRO_ROS_ENABLED
-	update_infra_node();
+	updateInfraNode();
 	#endif
 
-	frequencySweep();
+	//frequencySweep();
 }
 
 void frequencySweep()
