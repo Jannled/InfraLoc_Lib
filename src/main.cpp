@@ -22,6 +22,10 @@ constexpr uint8_t ADC_PIN = 28u;
 
 InfraLoc<CAPTURE_DEPTH>* infraLoc;
 
+#ifdef MICRO_ROS_ENABLED
+InfraNode* infraNode;
+#endif // MICRO_ROS_ENABLED
+
 void frequencySweep();
 
 void printArray(std::array<number_t, 16> &arr, int k)
@@ -50,7 +54,8 @@ void setup()
 	delay(100);
 
 	#ifdef MICRO_ROS_ENABLED
-	initInfraNode();
+	infraNode = new InfraNode();
+	infraNode->init();
 	#endif
 }
 
@@ -59,10 +64,16 @@ void loop()
 	digitalWrite(LED_BUILTIN, HIGH);
 
 	#ifdef MICRO_ROS_ENABLED
-	updateInfraNode();
-	#endif
+	// Gather infrared data
+	infraLoc->update();
 
-	//frequencySweep();
+	// Update the microROS stuff
+	infraNode->publishBucketStrength(infraLoc->results);
+	infraNode->update();
+
+	#else
+	frequencySweep();
+	#endif	
 }
 
 void frequencySweep()

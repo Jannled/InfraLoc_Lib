@@ -1,0 +1,1 @@
+float32[16] bucket_strength

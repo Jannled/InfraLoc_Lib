@@ -5,16 +5,28 @@
 
 #include <micro_ros_platformio.h>
 
+#include "rclc_parameter/rclc_parameter.h"
+#include "infraloc_interfaces/msg/bucket_strength.h"
 #include "infraloc_interfaces/srv/beacon_angle.h"
 
-// Private variables
-rclc_executor_t executor;
-rclc_support_t support;
-rcl_allocator_t allocator;
-rcl_node_t node;
+
+InfraNode::InfraNode()
+{
+
+}
+
+InfraNode::~InfraNode()
+{
+	// Clean up
+	rclc_executor_fini(&this->executor);
+	// other stuff
+	rclc_support_fini(&this->support);
+
+	error_loop();
+}
 
 // Error handle loop
-void error_loop() {
+void InfraNode::error_loop() {
 	while(1) {
 		delay(100);
 		digitalWrite(LED_BUILTIN, LOW);
@@ -36,7 +48,27 @@ void callback_beacon_angle(const void *request_msg, void *response_msg)
 	response->angle = k;
 }
 
-int createInfralocService()
+/**
+ * @brief TODO
+ * @return 
+ */
+int InfraNode::createParameterServer()
+{
+	rclc_parameter_server_t param_server;
+
+	// Initialize parameter server with default configuration
+	rcl_ret_t rc = rclc_parameter_server_init_default(&param_server, &node);
+
+	if(rc != RCL_RET_OK)
+		return rc;
+
+	// Add parameter to the server
+  	rc = rclc_add_parameter(&param_server, "sample_frequency", RCLC_PARAMETER_INT);
+
+	return rc;
+}
+
+int InfraNode::createInfralocService()
 {
 	// Service server object
 	rcl_service_t service;
@@ -69,7 +101,23 @@ int createInfralocService()
 	return RCL_RET_OK;
 }
 
-int initInfraNode()
+int InfraNode::createStrengthMessage()
+{
+	const char* topic_name = "bucket_strength";
+
+	// Get message type support
+	const rosidl_message_type_support_t* type_support =
+		ROSIDL_GET_MSG_TYPE_SUPPORT(infraloc_interfaces, msg, BucketStrength);
+
+	// Creates a reliable rcl publisher
+	rcl_ret_t rc = rclc_publisher_init_best_effort(
+		&strengthPublisher, &node, type_support, topic_name
+	);
+
+	return rc;
+}
+
+int InfraNode::init()
 {
 	set_microros_serial_transports(Serial);
 
@@ -81,16 +129,33 @@ int initInfraNode()
 	// create node
 	RCCHECK(rclc_node_init_default(&node, "infraloc", "", &support));
 
+	// Executor init example with the minimum RCLC executor handles required
+	executor = rclc_executor_get_zero_initialized_executor();
+	RCCHECK(rclc_executor_init(
+		&executor, &support.context,
+		RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES, &allocator
+	));
+
 	createInfralocService();
+	createStrengthMessage();
 
 	return RCL_RET_OK;
 }
 
 
-int updateInfraNode()
+int InfraNode::update()
 {
 	// Spin executor to receive requests
-	return rclc_executor_spin(&executor);
+	return rclc_executor_spin_some(&executor, 1000000 * spinMillis);
+}
+
+int InfraNode::publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values)
+{
+	infraloc_interfaces__msg__BucketStrength msg;
+	for(size_t i=0; i<INFRALOC_NUM_CHANNELS; i++)
+		msg.bucket_strength[i] = values.at(i);
+
+	return rcl_publish(&strengthPublisher, &msg, NULL);
 }
 
 #endif // ROS2_ENABLED
