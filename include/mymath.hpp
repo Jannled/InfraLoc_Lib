@@ -53,7 +53,7 @@ number_t euclideanDistance(cmplx_t value);
  * @param k The desired frequency (Calculated as P(Full)/P(Event))
  * @return X
  */
-cmplx_t fourierComponent(number_t values[], size_t n, number_t k);
+cmplx_t fourierComponent(number_t values[], const size_t N, const number_t k);
 
 /**
  * @brief 
@@ -108,9 +108,9 @@ number_t compiledFourierDC(const number_t values[])
 	return dcOffset;
 }
 
-cmplx_t cachedFourierComponent(number_t data[], size_t n, number_t k, number_t sinCache[], number_t cosCache[]);
+cmplx_t cachedFourierComponent(number_t data[], const size_t N, const number_t k, number_t sinCache[], number_t cosCache[]);
 
-cmplx_t cachedFourierComponent(uint16_t data[], size_t n, number_t k, number_t sinCache[], number_t cosCache[]);
+cmplx_t cachedFourierComponent(uint16_t data[], const size_t N, const number_t k, number_t sinCache[], number_t cosCache[]);
 
 number_t cachedFourierDC(number_t data[], size_t n, number_t k, number_t cosCacheZero[]);
 
@@ -127,7 +127,7 @@ void generateFourierCacheCos(number_t cache[], size_t n, number_t k);
  * @param N 
  * @return constexpr number_t* 
  */
-number_t* hammingWindow(number_t* values, size_t N);
+number_t* hammingWindow(number_t* values, const size_t big_n);
 
 /**
  * @brief Blackman Window
@@ -138,7 +138,7 @@ number_t* hammingWindow(number_t* values, size_t N);
  * @param N length of the values
  * @return constexpr number_t* 
  */
-number_t* blackmanWindow(number_t* values, size_t N);
+number_t* blackmanWindow(number_t* values, const size_t big_n);
 
 /**
  * @brief Goertzel Algorithm
@@ -150,11 +150,11 @@ number_t* blackmanWindow(number_t* values, size_t N);
  * https://web.archive.org/web/20121113163511/http://www.embedded.com:80/Home/PrintView?contentItemId=4024443
  * https://www.embedded.com/the-goertzel-algorithm/
 */
-cmplx_t goertzelAlgorithm(uint16_t* values, unsigned int N, unsigned int k);
+cmplx_t goertzelAlgorithm(uint16_t* values, const unsigned int big_n, const unsigned int k);
 
-cmplx_t generateGoertzelCache(const unsigned int N, const unsigned int k);
+cmplx_t generateGoertzelCache(const unsigned int big_n, const unsigned int k);
 
-cmplx_t cachedGoertzelAlgorithm(uint16_t *values, unsigned int N, unsigned int k, cmplx_t cache);
+cmplx_t cachedGoertzelAlgorithm(uint16_t *values, const unsigned int big_n, const unsigned int k, cmplx_t cache);
 
 /**
  * @brief Return the center frequency of the selected FFT bin.
@@ -163,7 +163,7 @@ cmplx_t cachedGoertzelAlgorithm(uint16_t *values, unsigned int N, unsigned int k
  * @param k The FFT frequency bin. Should be in range from `0` to `sampleCount/2`.
  * @return The center frequency in Hertz.
  */
-number_t calculateFrequencyCenter(size_t sampleCount, number_t sampleFreq, number_t k);
+number_t calculateFrequencyCenter(const size_t sampleCount, const number_t sampleFreq, const number_t k);
 
 /**
  * @brief 
@@ -172,6 +172,6 @@ number_t calculateFrequencyCenter(size_t sampleCount, number_t sampleFreq, numbe
  * @param targetFreq 
  * @return 
  */
-number_t calculateK(size_t sampleCount, number_t sampleFreq, number_t targetFreq);
+number_t calculateK(const size_t sampleCount, const number_t sampleFreqst, const number_t targetFreq);
 
 #endif // MY_MATH_H

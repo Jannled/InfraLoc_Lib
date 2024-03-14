@@ -4,7 +4,8 @@
 #include <stdint.h>
 
 // C++ standard libraries
-#include <bitset>         // std::bitset
+#include <bitset>		// std::bitset
+#include <algorithm>	// std::max_element	
 
 // Arduino libraries
 #include <Arduino.h>
@@ -178,6 +179,35 @@ void InfraLoc<N>::enableADC_DMA(const uint8_t adc_channel)
 	#else
 	#error This library only supports the Pi Pico right now.
 	#endif
+}
+
+/**
+ * @brief 
+ * See [@arbulaIndoorLocalizationBased2020]
+ * @param magnitudes 
+ */
+number_t calculateDirection(std::array<number_t, INFRALOC_NUM_CHANNELS> magnitudes)
+{
+	const uint8_t num_channels = (uint8_t) magnitudes.size();
+	size_t max_chan = 0;
+	for(size_t i=0; i<num_channels; i++)
+	{
+		if(magnitudes[i] > magnitudes[max_chan])
+			max_chan = i;
+	}
+
+	const number_t val = magnitudes[max_chan];
+	const number_t val_cw = magnitudes[(max_chan + 1) % num_channels];
+	const number_t val_ccw = magnitudes[(max_chan - 1) % magnitudes.size()];
+
+	const number_t seg_a = val / val_ccw;
+	const number_t seg_b = val_cw / val_ccw;
+	const number_t seg_c = val / val_cw;
+
+	const number_t ration = seg_a / seg_b;
+	const number_t pieSize = 360/num_channels/2;
+
+	return (360/num_channels)*max_chan;
 }
 
 /*
