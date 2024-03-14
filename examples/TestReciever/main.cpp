@@ -20,19 +20,6 @@ InfraLoc<CAPTURE_DEPTH>* infraLoc;
 
 void frequencySweep();
 
-void printArray(std::array<number_t, 16> &arr)
-{	
-	Serial.print("[");
-	Serial.print(arr.at(0));
-
-	for(size_t i=1; i<arr.size(); i++)
-	{
-		Serial.print(", ");
-		Serial.print(arr.at(i));
-	}
-	Serial.println("]");
-}
-
 void setup()
 {
 	Serial.begin(115200);

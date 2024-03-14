@@ -110,6 +110,8 @@ number_t compiledFourierDC(const number_t values[])
 
 cmplx_t cachedFourierComponent(number_t data[], size_t n, number_t k, number_t sinCache[], number_t cosCache[]);
 
+cmplx_t cachedFourierComponent(uint16_t data[], size_t n, number_t k, number_t sinCache[], number_t cosCache[]);
+
 number_t cachedFourierDC(number_t data[], size_t n, number_t k, number_t cosCacheZero[]);
 
 void generateFourierCacheSin(number_t cache[], size_t n, number_t k);
@@ -149,6 +151,10 @@ number_t* blackmanWindow(number_t* values, size_t N);
  * https://www.embedded.com/the-goertzel-algorithm/
 */
 cmplx_t goertzelAlgorithm(uint16_t* values, unsigned int N, unsigned int k);
+
+cmplx_t generateGoertzelCache(const unsigned int N, const unsigned int k);
+
+cmplx_t cachedGoertzelAlgorithm(uint16_t *values, unsigned int N, unsigned int k, cmplx_t cache);
 
 /**
  * @brief Return the center frequency of the selected FFT bin.

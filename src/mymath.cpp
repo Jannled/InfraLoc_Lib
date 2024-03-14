@@ -46,6 +46,19 @@ cmplx_t cachedFourierComponent(number_t data[], size_t n, number_t k, number_t s
 	return big_x;
 }
 
+cmplx_t cachedFourierComponent(uint16_t data[], size_t n, number_t k, number_t sinCache[], number_t cosCache[])
+{
+	cmplx_t big_x = {0};
+
+	for(size_t i=0; i<n; i++)
+	{
+		big_x.re += data[i] * cosCache[i];
+		big_x.im += data[i] * sinCache[i];
+	}
+
+	return big_x;
+}
+
 number_t cachedFourierDC(number_t data[], size_t n, number_t k, number_t cosCacheZero[])
 {
 	number_t dcOffset = 0.0;
@@ -95,18 +108,41 @@ number_t* blackmanWindow(number_t* values, size_t N)
 	return values;
 }
 
-cmplx_t goertzelAlgorithm(uint16_t* values, unsigned int N, unsigned int k)
+cmplx_t generateGoertzelCache(const unsigned int N, const unsigned int k)
+{
+	const number_t W_re = 2 * cos(2 * MY_PI * k / N);
+	const number_t W_im = sin(2 * MY_PI * k / N);
+	return {W_re, W_im};
+}
+
+cmplx_t cachedGoertzelAlgorithm(uint16_t *values, unsigned int N, unsigned int k, cmplx_t cache)
+{
+	number_t d1 = 0;
+	number_t d2 = 0;
+
+	for(size_t n=0; n<N; n++)
+	{
+		number_t y = values[n] + cache.re*d1 - d2;
+		d2 = d1;
+		d1 = y;
+	}
+
+	const cmplx_t res = {0.5f*cache.re*d1 - d2, cache.im*d1};
+	return res;
+}
+
+cmplx_t goertzelAlgorithm(uint16_t* values, const unsigned int N, const unsigned int k)
 {
 	// https://www.mstarlabs.com/dsp/goertzel/goertzel.html
-	number_t W_re = 2 * cos(2 * MY_PI * k / N);
-	number_t W_im = sin(2 * MY_PI * k / N);
+	const number_t W_re = 2 * cos(2 * MY_PI * k / N);
+	const number_t W_im = sin(2 * MY_PI * k / N);
 
 	number_t d1 = 0;
 	number_t d2 = 0;
 
 	for(size_t n=0; n<N; n++)
 	{
-		number_t y = values[n] + W_re*d1 - d2;
+		const number_t y = values[n] + W_re*d1 - d2;
 		d2 = d1;
 		d1 = y;
 	}
