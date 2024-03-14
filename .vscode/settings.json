@@ -94,6 +94,11 @@
 	"gitlens.ai.experimental.generateCommitMessage.enabled": false,
 	"gitlens.ai.experimental.openai.url": null,
 
+	// Make sure all language functionality is enabled
+	//"C_Cpp.intelliSenseEngineFallback": "enabled",
+	"python.analysis.autoImportCompletions": true,
+	"python.analysis.typeCheckingMode": "basic",
+
 	// User Spellcheck Dictionary
 	"cSpell.words": [
 		"blackman",
@@ -119,6 +124,5 @@
 		"RCSOFTCHECK",
 		"ROSIDL",
 		"tparam"
-	],
-	"C_Cpp.intelliSenseEngineFallback": "enabled"
+	]
 }

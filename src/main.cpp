@@ -12,12 +12,12 @@
 #define CAPTURE_DEPTH 512
 
 #define SAMPLE_FREQ 200000u // 200kHz
-#define FREQ_BIN 204
+#define FREQ_BIN 99			// 99 = 38.672 kHz (98 = 38.281kHz) 
 
-constexpr uint8_t MUX_S0 = 9u;
-constexpr uint8_t MUX_S1 = 8u;
-constexpr uint8_t MUX_S2 = 7u;
-constexpr uint8_t MUX_S3 = 6u;
+constexpr uint8_t MUX_S0 = 6u;
+constexpr uint8_t MUX_S1 = 7u;
+constexpr uint8_t MUX_S2 = 8u;
+constexpr uint8_t MUX_S3 = 9u;
 constexpr uint8_t ADC_PIN = 28u;
 
 InfraLoc<CAPTURE_DEPTH>* infraLoc;
