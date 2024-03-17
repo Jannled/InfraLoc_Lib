@@ -1,5 +1,7 @@
 #include "InfraLoc.hpp"
 
+#include "mymath.hpp"
+
 // C standard libraries
 #include <stdint.h>
 
@@ -75,7 +77,12 @@ template<size_t N>
 number_t InfraLoc<N>::getFrequencyComponent(const float k, const uint8_t channel)
 {
 	std::array<uint16_t, N> buff = this->captureBuff.at(channel);
-	return euclideanDistance(goertzelAlgorithm(buff.data(), buff.size(), k));
+	number_t winData[buff.size()];
+	//hammingWindow(buff.data(), buff.size());
+	bartlettWindow(buff.data(), buff.size(), winData);
+	//noWindow(buff.data(), buff.size(), winData);
+	
+	return euclideanDistance(goertzelAlgorithm(winData, buff.size(), k));
 }
 
 template<size_t N>

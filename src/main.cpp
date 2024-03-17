@@ -13,7 +13,7 @@
 #define CAPTURE_DEPTH 512
 
 #define SAMPLE_FREQ 200000u // 200kHz
-#define FREQ_BIN 99			// 99 = 38.672 kHz (98 = 38.281kHz) 
+#define FREQ_BIN 2			// 99 = 38.672 kHz (98 = 38.281kHz) 
 
 constexpr uint8_t MUX_S0 = 6u;
 constexpr uint8_t MUX_S1 = 7u;
@@ -28,6 +28,7 @@ InfraNode* infraNode;
 #endif // MICRO_ROS_ENABLED
 
 void frequencySweep();
+void printMagnitudes(unsigned int fourierBin);
 
 void setup()
 {
@@ -59,8 +60,27 @@ void loop()
 	infraNode->update();
 
 	#else
-	frequencySweep();
+	printMagnitudes(FREQ_BIN);
+	//frequencySweep();
 	#endif	
+}
+
+/**
+ * @brief Print a list of all DFT results for each channel (only one target frequency)
+ * Needed for the Matlab ServoSweep.m functions
+ * @param fourierBin The target frequency as a fourier bin
+ */
+void printMagnitudes(unsigned int fourierBin)
+{
+	std::array<number_t, 16> results;
+	results.fill(1337);
+
+	infraLoc->update();
+	
+	for(uint8_t channel=0; channel<INFRALOC_NUM_CHANNELS; channel++)
+		results[channel] = infraLoc->getFrequencyComponent(fourierBin, channel);
+
+	printArray(results, fourierBin);
 }
 
 void frequencySweep()

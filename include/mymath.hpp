@@ -119,6 +119,25 @@ void generateFourierCacheSin(number_t cache[], size_t n, number_t k);
 void generateFourierCacheCos(number_t cache[], size_t n, number_t k);
 
 /**
+ * @brief Stupid converter to convert the ADC integer values to floats without applying a windowing function
+ * 
+ * @param input 
+ * @param big_n 
+ * @param output 
+ * @return number_t* 
+*/
+number_t* noWindow(const uint16_t input[], const uint16_t big_n, number_t output[]);
+
+/**
+ * @brief Optimized version of a Bartlett Window by promoting 16bit numbers to 32bit fixed point
+ * // Normally the order of dot operations does not matter, but due to integer arithmetic, more information would be lost otherwise
+ * @param values 
+ * @param big_n 
+ * @return 
+ */
+number_t* bartlettWindow(const uint16_t input[], const uint16_t big_n, number_t output[]);
+
+/**
  * @brief Hamming Window
  * 
  * Note: constexpr functions with loops or generally anything with more than one line need C++14
@@ -150,7 +169,7 @@ number_t* blackmanWindow(number_t* values, const size_t big_n);
  * https://web.archive.org/web/20121113163511/http://www.embedded.com:80/Home/PrintView?contentItemId=4024443
  * https://www.embedded.com/the-goertzel-algorithm/
 */
-cmplx_t goertzelAlgorithm(uint16_t* values, const unsigned int big_n, const unsigned int k);
+cmplx_t goertzelAlgorithm(number_t* values, const unsigned int big_n, const unsigned int k);
 
 cmplx_t generateGoertzelCache(const unsigned int big_n, const unsigned int k);
 
@@ -172,6 +191,6 @@ number_t calculateFrequencyCenter(const size_t sampleCount, const number_t sampl
  * @param targetFreq 
  * @return 
  */
-number_t calculateK(const size_t sampleCount, const number_t sampleFreqst, const number_t targetFreq);
+number_t calculateK(const size_t sampleCount, const number_t sampleFreq, const number_t targetFreq);
 
 #endif // MY_MATH_H

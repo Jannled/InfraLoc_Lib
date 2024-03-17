@@ -87,7 +87,9 @@
 		"thread": "cpp",
 		"cinttypes": "cpp",
 		"typeindex": "cpp",
-		"typeinfo": "cpp"
+		"typeinfo": "cpp",
+		"stddef.h": "c",
+		"stdfix.h": "c"
 	},
 
 	// Disable stupid GitLens features
@@ -102,6 +104,7 @@
 	// User Spellcheck Dictionary
 	"cSpell.words": [
 		"arbula",
+		"bartlett",
 		"blackman",
 		"clkdiv",
 		"cmplx",

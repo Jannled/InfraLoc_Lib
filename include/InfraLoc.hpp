@@ -38,6 +38,7 @@ public:
 
 	std::array<number_t, INFRALOC_NUM_CHANNELS> results;
 	std::array<std::array<uint16_t, N>, INFRALOC_NUM_CHANNELS> captureBuff;
+	std::array<number_t, N> hammingCache;
 	uint32_t k;
 	uint32_t sample_freq;
 

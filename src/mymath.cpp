@@ -94,6 +94,30 @@ cmplx_t fourierComponent(number_t values[], const size_t n, const number_t k)
 	return big_x;
 }
 
+number_t* noWindow(const uint16_t input[], const uint16_t big_n, number_t output[])
+{
+	for(size_t i=0; i<big_n; i++)
+		output[i] = input[i];
+
+	return output;
+}
+
+number_t* bartlettWindow(const uint16_t input[], const uint16_t big_n, number_t output[])
+{
+	output[0] = 0;
+	output[big_n - 1] = 0;
+
+	for(size_t i=1; i<big_n/2u - 1; i++)
+	{
+		const size_t b = big_n - 1 - i;		// Index from the back of the array
+		const number_t bf = 2.0f*i/big_n;	// Bartlett factor
+		output[i] = input[i] * bf;		 	// Attack from front
+		output[b] = input[b] * bf; 			// Mirrored attack from back
+	}
+	
+	return output;
+}
+
 number_t* hammingWindow(number_t* values, const size_t big_n)
 {
 	for(size_t i=0; i<big_n; i++)
@@ -131,7 +155,7 @@ cmplx_t cachedGoertzelAlgorithm(uint16_t *values, const unsigned int big_n, cons
 	return res;
 }
 
-cmplx_t goertzelAlgorithm(uint16_t* values, const unsigned int big_n, const unsigned int k)
+cmplx_t goertzelAlgorithm(number_t* values, const unsigned int big_n, const unsigned int k)
 {
 	// https://www.mstarlabs.com/dsp/goertzel/goertzel.html
 	const number_t W_re = 2 * cos(2 * MY_PI * k / big_n);
