@@ -184,3 +184,12 @@ number_t calculateK(const size_t sampleCount, const number_t sampleFreq, const n
 {
 	return (targetFreq * sampleCount) / sampleFreq;
 }
+
+number_t tienstraMethod(
+		const vec2 pos[3], 
+		const number_t alpha, const number_t beta, const number_t gamma, 
+		const number_t ang_a, const number_t ang_b, const number_t ang_c
+	)
+{
+	return 0;
+}

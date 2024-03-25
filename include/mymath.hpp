@@ -18,6 +18,12 @@ typedef struct
 	number_t im;
 } cmplx_t;
 
+typedef struct
+{
+	number_t x;
+	number_t y;
+} vec2;
+
 // https://stackoverflow.com/a/34465458
 template<int N, int k>
 struct SinCache {

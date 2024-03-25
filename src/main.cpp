@@ -13,7 +13,7 @@
 #define CAPTURE_DEPTH 512
 
 #define SAMPLE_FREQ 200000u // 200kHz
-#define FREQ_BIN 2			// 99 = 38.672 kHz (98 = 38.281kHz) 
+#define FREQ_BIN 99			// 99 = 38.672 kHz (98 = 38.281kHz) , 2 = 1kHz
 
 constexpr uint8_t MUX_S0 = 6u;
 constexpr uint8_t MUX_S1 = 7u;
@@ -36,6 +36,7 @@ void setup()
 	Serial.begin(115200);
 
 	pinMode(LED_BUILTIN, OUTPUT);
+	pinMode(2, OUTPUT);
 
 	infraLoc = new InfraLoc<CAPTURE_DEPTH>(ADC_PIN, MUX_S0, MUX_S1, MUX_S2, MUX_S3, FREQ_BIN, SAMPLE_FREQ);
 
@@ -50,6 +51,7 @@ void setup()
 void loop()
 {
 	digitalWrite(LED_BUILTIN, HIGH);
+	digitalWrite(2, !digitalRead(2));
 
 	#ifdef MICRO_ROS_ENABLED
 	// Gather infrared data
