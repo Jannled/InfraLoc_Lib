@@ -9,6 +9,7 @@
 #ifdef MICRO_ROS_ENABLED
 #include "InfraLoc_Node.hpp"
 #endif
+#include <clocks.h>
 
 #define CAPTURE_DEPTH 512
 
@@ -21,11 +22,18 @@ constexpr uint8_t MUX_S2 = 8u;
 constexpr uint8_t MUX_S3 = 9u;
 constexpr uint8_t ADC_PIN = 28u;
 
+constexpr uint8_t USR_LED_1 = 2;
+constexpr uint8_t USR_LED_2 = 3;
+constexpr uint8_t USR_BTN = 21;
+constexpr uint8_t PWM_PIN = 20;
+
 InfraLoc<CAPTURE_DEPTH>* infraLoc;
 
 #ifdef MICRO_ROS_ENABLED
 InfraNode* infraNode;
 #endif // MICRO_ROS_ENABLED
+
+void outputPWM(uint8_t gpio_pin, unsigned int frequency);
 
 void printRawADC();
 void frequencySweep();
@@ -37,8 +45,15 @@ void setup()
 	Serial.begin(115200);
 
 	pinMode(LED_BUILTIN, OUTPUT);
-	pinMode(2, OUTPUT);
+	pinMode(USR_LED_1, OUTPUT);
+	pinMode(USR_LED_2, OUTPUT);
+	pinMode(PWM_PIN, OUTPUT);
+	pinMode(USR_BTN, INPUT_PULLDOWN);
 
+	// Drive Sender
+	outputPWM(PWM_PIN, 50);
+	
+	// Create InfraLoc Receiver class
 	infraLoc = new InfraLoc<CAPTURE_DEPTH>(ADC_PIN, MUX_S0, MUX_S1, MUX_S2, MUX_S3, FREQ_BIN, SAMPLE_FREQ);
 
 	delay(100);
@@ -51,8 +66,8 @@ void setup()
 
 void loop()
 {
-	//digitalWrite(LED_BUILTIN, HIGH);
-	//digitalWrite(2, !digitalRead(2));
+	digitalWrite(LED_BUILTIN, HIGH);
+	digitalWrite(2, !digitalRead(2));
 
 	#ifdef MICRO_ROS_ENABLED
 	// Gather infrared data
@@ -67,6 +82,26 @@ void loop()
 	//frequencySweep();
 	//printRawADC();
 	#endif	
+}
+
+/**
+ * https://github.com/raspberrypi/pico-examples/blob/master/pwm/hello_pwm/hello_pwm.c
+*/
+void outputPWM(uint8_t gpio_pin, unsigned int frequency)
+{
+	constexpr uint16_t TOP_VALUE = 255;
+
+	#if defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_ARCH_RP2040)
+	volatile uint32_t f_sys = clock_get_hz(clk_sys);
+	gpio_set_function(gpio_pin, GPIO_FUNC_PWM);
+	uint slice_num = pwm_gpio_to_slice_num(gpio_pin);
+	pwm_set_wrap(slice_num, TOP_VALUE);
+	pwm_set_clkdiv(slice_num, 128);
+	pwm_set_gpio_level(gpio_pin, 127);
+	pwm_set_enabled(slice_num, true);
+	#else
+	#error This library only supports the Pi Pico right now.
+	#endif
 }
 
 /**
