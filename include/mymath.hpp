@@ -199,4 +199,24 @@ number_t calculateFrequencyCenter(const size_t sampleCount, const number_t sampl
  */
 number_t calculateK(const size_t sampleCount, const number_t sampleFreq, const number_t targetFreq);
 
+/**
+ * @brief Planar resection with the Tienstra method (triangulation but the angles are measured from the unknown point)
+ * 
+ * @param pos_a Point A
+ * @param pos_b Point B
+ * @param pos_c Point C
+ * @param alpha Angle between BC in Point P
+ * @param beta Angle between AC in Point P
+ * @param gamma Angle between AB in Point P
+ * @param ang_a Angle of BC in Point A
+ * @param ang_b Angle of AC in Point B
+ * @param ang_c Angle of AB in Point C
+ * @return vec2 The position of the unknown point P
+ */
+vec2 tienstraMethod(
+		const vec2 pos_a, const vec2 pos_b, const vec2 pos_c, 
+		const number_t alpha, const number_t beta, const number_t gamma, 
+		const number_t ang_a, const number_t ang_b, const number_t ang_c
+	);
+
 #endif // MY_MATH_H

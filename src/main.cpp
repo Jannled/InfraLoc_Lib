@@ -27,6 +27,7 @@ InfraLoc<CAPTURE_DEPTH>* infraLoc;
 InfraNode* infraNode;
 #endif // MICRO_ROS_ENABLED
 
+void printRawADC();
 void frequencySweep();
 void printMagnitudes(unsigned int fourierBin);
 
@@ -50,8 +51,8 @@ void setup()
 
 void loop()
 {
-	digitalWrite(LED_BUILTIN, HIGH);
-	digitalWrite(2, !digitalRead(2));
+	//digitalWrite(LED_BUILTIN, HIGH);
+	//digitalWrite(2, !digitalRead(2));
 
 	#ifdef MICRO_ROS_ENABLED
 	// Gather infrared data
@@ -64,6 +65,7 @@ void loop()
 	#else
 	printMagnitudes(FREQ_BIN);
 	//frequencySweep();
+	//printRawADC();
 	#endif	
 }
 
@@ -85,6 +87,10 @@ void printMagnitudes(unsigned int fourierBin)
 	printArray(results, fourierBin);
 }
 
+/**
+ * @brief Sweep over the full frequency range one bin at a time to find the optimum frequency bin with a python script
+ * 
+ */
 void frequencySweep()
 {
 	std::array<number_t, 16> results;
@@ -100,4 +106,23 @@ void frequencySweep()
 	}
 
 	Serial.println("------------------------------------------------------------------");
+}
+
+/**
+ * @brief Print raw adc counts for each channel
+ * 
+ */
+void printRawADC()
+{
+	std::array<number_t, 16> results;
+	results.fill(1337);
+	
+	for(uint8_t channel=0; channel<INFRALOC_NUM_CHANNELS; channel++)
+	{
+		infraLoc->switchChannels(channel);
+		delay(10);
+		results[channel] = analogRead(ADC_PIN);
+	}
+
+	printArray(results, -1);
 }

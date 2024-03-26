@@ -185,11 +185,20 @@ number_t calculateK(const size_t sampleCount, const number_t sampleFreq, const n
 	return (targetFreq * sampleCount) / sampleFreq;
 }
 
-number_t tienstraMethod(
-		const vec2 pos[3], 
+vec2 tienstraMethod(
+		const vec2 pos_a, const vec2 pos_b, const vec2 pos_c, 
 		const number_t alpha, const number_t beta, const number_t gamma, 
 		const number_t ang_a, const number_t ang_b, const number_t ang_c
 	)
 {
-	return 0;
+	const number_t w1 = (sin(alpha)*sin(ang_a)) / sin(alpha - ang_a);
+	const number_t w2 = (sin(beta)*sin(ang_b)) / sin(beta - ang_b);
+	const number_t w3 = (sin(gamma)*sin(ang_c)) / sin(gamma - ang_c);
+	const number_t w_denom = w1 + w2 + w3;
+	
+	vec2 pos_p = {0};
+	pos_p.x = (w1*pos_a.x + w2*pos_b.x + w3*pos_c.x) / w_denom;
+	pos_p.y = (w1*pos_a.y + w2*pos_b.y + w3*pos_c.y) / w_denom;
+
+	return pos_p;
 }
