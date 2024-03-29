@@ -89,7 +89,8 @@
 		"typeindex": "cpp",
 		"typeinfo": "cpp",
 		"stddef.h": "c",
-		"stdfix.h": "c"
+		"stdfix.h": "c",
+		"mstd_iterator": "cpp"
 	},
 
 	// Disable stupid GitLens features

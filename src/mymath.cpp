@@ -1,4 +1,5 @@
 #include "mymath.hpp"
+#include <array>
 
 number_t sum(number_t values[], const size_t n)
 {
@@ -183,6 +184,36 @@ number_t calculateFrequencyCenter(const size_t sampleCount, const number_t sampl
 number_t calculateK(const size_t sampleCount, const number_t sampleFreq, const number_t targetFreq)
 {
 	return (targetFreq * sampleCount) / sampleFreq;
+}
+
+
+/**
+ * @brief 
+ * See [@arbulaIndoorLocalizationBased2020]
+ * @param magnitudes 
+ */
+number_t calculateDirection(number_t *magnitudes, size_t length) // TODO Magic number
+{
+	const uint8_t num_channels = (uint8_t) length;
+	size_t max_chan = 0;
+	for(size_t i=0; i<num_channels; i++)
+	{
+		if(magnitudes[i] > magnitudes[max_chan])
+			max_chan = i;
+	}
+
+	const number_t val = magnitudes[max_chan];
+	const number_t val_cw = magnitudes[(max_chan + 1) % num_channels];
+	const number_t val_ccw = magnitudes[(max_chan - 1) % length];
+
+	const number_t seg_a = val / val_ccw;
+	const number_t seg_b = val_cw / val_ccw;
+	const number_t seg_c = val / val_cw;
+
+	const number_t ration = seg_a / seg_b;
+	const number_t pieSize = 360/num_channels/2;
+
+	return (360/num_channels)*max_chan;
 }
 
 vec2 tienstraMethod(

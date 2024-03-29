@@ -14,7 +14,7 @@
 #define CAPTURE_DEPTH 512
 
 #define SAMPLE_FREQ 200000u // 200kHz
-#define FREQ_BIN 99			// 99 = 38.672 kHz (98 = 38.281kHz) , 2 = 1kHz
+#define FREQ_BIN 2			// 99 = 38.672 kHz (98 = 38.281kHz) , 2 = 1kHz
 
 constexpr uint8_t MUX_S0 = 6u;
 constexpr uint8_t MUX_S1 = 7u;
@@ -51,7 +51,7 @@ void setup()
 	pinMode(USR_BTN, INPUT_PULLDOWN);
 
 	// Drive Sender
-	outputPWM(PWM_PIN, 50);
+	outputPWM(PWM_PIN, 50000);
 	
 	// Create InfraLoc Receiver class
 	infraLoc = new InfraLoc<CAPTURE_DEPTH>(ADC_PIN, MUX_S0, MUX_S1, MUX_S2, MUX_S3, FREQ_BIN, SAMPLE_FREQ);
@@ -89,15 +89,15 @@ void loop()
 */
 void outputPWM(uint8_t gpio_pin, unsigned int frequency)
 {
-	constexpr uint16_t TOP_VALUE = 255;
+	constexpr uint16_t TOP_VALUE = 1000; // The value is TOP +1
 
 	#if defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_ARCH_RP2040)
-	volatile uint32_t f_sys = clock_get_hz(clk_sys);
+	volatile uint32_t f_sys = clock_get_hz(clk_sys); // Default 125MHz
 	gpio_set_function(gpio_pin, GPIO_FUNC_PWM);
 	uint slice_num = pwm_gpio_to_slice_num(gpio_pin);
 	pwm_set_wrap(slice_num, TOP_VALUE);
-	pwm_set_clkdiv(slice_num, 128);
-	pwm_set_gpio_level(gpio_pin, 127);
+	pwm_set_clkdiv(slice_num, f_sys / (frequency*(TOP_VALUE)));
+	pwm_set_gpio_level(gpio_pin, TOP_VALUE/2);
 	pwm_set_enabled(slice_num, true);
 	#else
 	#error This library only supports the Pi Pico right now.

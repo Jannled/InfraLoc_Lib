@@ -200,6 +200,15 @@ number_t calculateFrequencyCenter(const size_t sampleCount, const number_t sampl
 number_t calculateK(const size_t sampleCount, const number_t sampleFreq, const number_t targetFreq);
 
 /**
+ * @brief 
+ * 
+ * @param magnitudes 
+ * @param length 
+ * @return number_t 
+ */
+number_t calculateDirection(number_t *magnitudes, size_t length);
+
+/**
  * @brief Planar resection with the Tienstra method (triangulation but the angles are measured from the unknown point)
  * 
  * @param pos_a Point A
