@@ -206,7 +206,7 @@ number_t calculateK(const size_t sampleCount, const number_t sampleFreq, const n
  * @param length 
  * @return number_t 
  */
-number_t calculateDirection(number_t *magnitudes, size_t length);
+number_t calculateDirection(const number_t *magnitudes, const size_t length);
 
 /**
  * @brief Planar resection with the Tienstra method (triangulation but the angles are measured from the unknown point)
