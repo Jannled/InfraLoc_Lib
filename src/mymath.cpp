@@ -186,35 +186,6 @@ number_t calculateK(const size_t sampleCount, const number_t sampleFreq, const n
 	return (targetFreq * sampleCount) / sampleFreq;
 }
 
-
-/**
- * @brief 
- * See [@arbulaIndoorLocalizationBased2020]
- * @param magnitudes 
- */
-number_t calculateDirection(const number_t *magnitudes, const size_t length) // TODO Magic number
-{
-	const number_t pieSize = 360.0f/length/2.0f;
-	const number_t offset = 0.85f;
-
-	const uint8_t num_channels = (uint8_t) length;
-	size_t max_chan = 0;
-	for(size_t i=0; i<num_channels; i++)
-	{
-		if(magnitudes[i] > magnitudes[max_chan])
-			max_chan = i;
-	}
-
-	const number_t val = magnitudes[max_chan];
-	const number_t val_cw = magnitudes[(max_chan + 1) % num_channels];
-	const number_t val_ccw = magnitudes[(max_chan - 1) % length];
-
-	const number_t seg_b = val_cw / val_ccw;
-	const number_t seg_d = val_ccw / val_cw;
-
-	return (360/num_channels)*max_chan - pieSize/(seg_b+offset) + pieSize/(seg_d+offset);
-}
-
 vec2 tienstraMethod(
 		const vec2 pos_a, const vec2 pos_b, const vec2 pos_c, 
 		const number_t alpha, const number_t beta, const number_t gamma, 

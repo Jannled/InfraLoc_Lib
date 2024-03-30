@@ -119,7 +119,9 @@ void printMagnitudes(unsigned int fourierBin)
 	for(uint8_t channel=0; channel<INFRALOC_NUM_CHANNELS; channel++)
 		results[channel] = infraLoc->getFrequencyComponent(fourierBin, channel);
 
-	printArray(results, fourierBin);
+	number_t angle = infraLoc->calculateDirection(results);
+
+	printArray(results, angle);
 }
 
 /**
@@ -137,7 +139,7 @@ void frequencySweep()
 		for(uint8_t channel=0; channel<INFRALOC_NUM_CHANNELS; channel++)
 			results[channel] = infraLoc->getFrequencyComponent(k, channel);
 
-		printArray(results, k);
+		printArray(results, (int) k);
 	}
 
 	Serial.println("------------------------------------------------------------------");

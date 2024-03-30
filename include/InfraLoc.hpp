@@ -50,6 +50,15 @@ public:
 	
 	number_t getFrequencyComponent(const float k, const uint8_t channel);
 
+	/**
+	 * @brief 
+	 * 
+	 * @param magnitudes 
+	 * @param length 
+	 * @return number_t 
+	 */
+	number_t calculateDirection(const std::array<number_t, INFRALOC_NUM_CHANNELS> &magnitudes);
+
 	void update();
 
 	/*void printArray(std::array<unsigned int, N> &arr);
