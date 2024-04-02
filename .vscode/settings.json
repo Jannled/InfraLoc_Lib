@@ -111,6 +111,7 @@
 		"cmplx",
 		"dreq",
 		"DREQ",
+		"dutycycle",
 		"fftfreq",
 		"figsize",
 		"fourier",

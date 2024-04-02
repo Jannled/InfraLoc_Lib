@@ -33,7 +33,7 @@ InfraLoc<CAPTURE_DEPTH>* infraLoc;
 InfraNode* infraNode;
 #endif // MICRO_ROS_ENABLED
 
-void outputPWM(uint8_t gpio_pin, unsigned int frequency);
+void outputPWM(uint8_t gpio_pin, unsigned int frequency, unsigned int dutycycle = 500u);
 
 void printRawADC();
 void frequencySweep();
@@ -51,7 +51,7 @@ void setup()
 	pinMode(USR_BTN, INPUT_PULLDOWN);
 
 	// Drive Sender
-	outputPWM(PWM_PIN, 50000);
+	outputPWM(PWM_PIN, 38400);
 	
 	// Create InfraLoc Receiver class
 	infraLoc = new InfraLoc<CAPTURE_DEPTH>(ADC_PIN, MUX_S0, MUX_S1, MUX_S2, MUX_S3, FREQ_BIN, SAMPLE_FREQ);
@@ -87,7 +87,7 @@ void loop()
 /**
  * https://github.com/raspberrypi/pico-examples/blob/master/pwm/hello_pwm/hello_pwm.c
 */
-void outputPWM(uint8_t gpio_pin, unsigned int frequency)
+void outputPWM(uint8_t gpio_pin, unsigned int frequency, unsigned int dutycycle)
 {
 	constexpr uint16_t TOP_VALUE = 1000; // The value is TOP +1
 
@@ -96,8 +96,8 @@ void outputPWM(uint8_t gpio_pin, unsigned int frequency)
 	gpio_set_function(gpio_pin, GPIO_FUNC_PWM);
 	uint slice_num = pwm_gpio_to_slice_num(gpio_pin);
 	pwm_set_wrap(slice_num, TOP_VALUE);
-	pwm_set_clkdiv(slice_num, f_sys / (frequency*(TOP_VALUE)));
-	pwm_set_gpio_level(gpio_pin, TOP_VALUE/2);
+	pwm_set_clkdiv(slice_num, (float) f_sys / (frequency*TOP_VALUE));
+	pwm_set_gpio_level(gpio_pin, dutycycle);
 	pwm_set_enabled(slice_num, true);
 	#else
 	#error This library only supports the Pi Pico right now.
