@@ -32,14 +32,12 @@ private:
 
 public:
 	InfraLoc(const uint8_t adc_pin, const uint8_t mux0, const uint8_t mux1, 
-		const uint8_t mux2, const uint8_t mux3, const uint32_t k, const uint32_t sample_freq
+		const uint8_t mux2, const uint8_t mux3, const uint32_t sample_freq
 	);
 	~InfraLoc();
 
 	std::array<number_t, INFRALOC_NUM_CHANNELS> results;
 	std::array<std::array<uint16_t, N>, INFRALOC_NUM_CHANNELS> captureBuff;
-	std::array<number_t, N> hammingCache;
-	uint32_t k;
 	uint32_t sample_freq;
 
 	void startSampling(uint16_t* buffer, size_t numSamples);
@@ -60,6 +58,8 @@ public:
 	number_t calculateDirection(const std::array<number_t, INFRALOC_NUM_CHANNELS> &magnitudes);
 
 	void update();
+
+	void calculateStrength(unsigned int k);
 
 	/*void printArray(std::array<unsigned int, N> &arr);
 	void printArray(std::array<uint16_t, N> &arr);*/

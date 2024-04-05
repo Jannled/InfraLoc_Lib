@@ -51,10 +51,10 @@ void setup()
 	pinMode(USR_BTN, INPUT_PULLDOWN);
 
 	// Drive Sender
-	outputPWM(PWM_PIN, 38400);
+	outputPWM(PWM_PIN, 50000);
 	
 	// Create InfraLoc Receiver class
-	infraLoc = new InfraLoc<CAPTURE_DEPTH>(ADC_PIN, MUX_S0, MUX_S1, MUX_S2, MUX_S3, FREQ_BIN, SAMPLE_FREQ);
+	infraLoc = new InfraLoc<CAPTURE_DEPTH>(ADC_PIN, MUX_S0, MUX_S1, MUX_S2, MUX_S3, SAMPLE_FREQ);
 
 	delay(100);
 
@@ -111,17 +111,11 @@ void outputPWM(uint8_t gpio_pin, unsigned int frequency, unsigned int dutycycle)
  */
 void printMagnitudes(unsigned int fourierBin)
 {
-	std::array<number_t, 16> results;
-	results.fill(1337);
-
 	infraLoc->update();
-	
-	for(uint8_t channel=0; channel<INFRALOC_NUM_CHANNELS; channel++)
-		results[channel] = infraLoc->getFrequencyComponent(fourierBin, channel);
+	infraLoc->calculateStrength(2);
 
-	number_t angle = infraLoc->calculateDirection(results);
-
-	printArray(results, angle);
+	//number_t angle = infraLoc->calculateDirection(infraLoc->results);
+	printArray(infraLoc->results, 0);
 }
 
 /**
@@ -132,6 +126,8 @@ void frequencySweep()
 {
 	std::array<number_t, 16> results;
 	results.fill(1337);
+
+	// TODO FIXME Looks like `InfraLoc::calculateStrength` results array is memory corrupted
 
 	infraLoc->update();
 	for(size_t k=0; k<CAPTURE_DEPTH/2 + 1; k++)

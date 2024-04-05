@@ -17,9 +17,9 @@
 #include <hardware/dma.h>
 
 template<size_t N>
-InfraLoc<N>::InfraLoc(uint8_t adc_pin, uint8_t mux0, uint8_t mux1, uint8_t mux2, uint8_t mux3, uint32_t k, 
+InfraLoc<N>::InfraLoc(uint8_t adc_pin, uint8_t mux0, uint8_t mux1, uint8_t mux2, uint8_t mux3, 
 	const uint32_t sample_freq)
-	: adc_pin(adc_pin), mux_0(mux0), mux_1(mux1), mux_2(mux2), mux_3(mux3), currentChannel(0), captureBuff({{0}}), k(k),
+	: adc_pin(adc_pin), mux_0(mux0), mux_1(mux1), mux_2(mux2), mux_3(mux3), currentChannel(0), captureBuff({{0}}),
 		sample_freq(sample_freq)
 {
 	for(size_t i=0; i<this->captureBuff.size(); i++)
@@ -78,7 +78,6 @@ number_t InfraLoc<N>::getFrequencyComponent(const float k, const uint8_t channel
 {
 	std::array<uint16_t, N> buff = this->captureBuff.at(channel);
 	number_t winData[buff.size()];
-	//hammingWindow(buff.data(), buff.size());
 	bartlettWindow(buff.data(), buff.size(), winData);
 	//noWindow(buff.data(), buff.size(), winData);
 	
@@ -133,8 +132,18 @@ void InfraLoc<N>::update()
 	}
 
 	// Pull all the desired frequencies
+	calculateStrength(2);
+	this->results[0] = -1337.0f;
+}
+
+template<size_t N>
+void InfraLoc<N>::calculateStrength(unsigned int k)
+{
+	// Pull all the desired frequencies
 	for(uint8_t c=0; c<INFRALOC_NUM_CHANNELS; c++)
-		this->results[c] = getFrequencyComponent(this->k, c);
+	{
+		this->results[c] = getFrequencyComponent(k, c);
+	}
 }
 
 template<size_t N>
