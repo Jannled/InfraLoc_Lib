@@ -111,10 +111,17 @@ void outputPWM(uint8_t gpio_pin, unsigned int frequency, unsigned int dutycycle)
  */
 void printMagnitudes(unsigned int fourierBin)
 {
+	// Measure the light
 	infraLoc->update();
-	infraLoc->calculateStrength(2);
-
+	
+	// Calculate Beacon 1
+	infraLoc->calculateStrength(99);
 	number_t angle = infraLoc->calculateDirection(infraLoc->results);
+	printArray(infraLoc->results, angle);
+
+	// Calculate Beacon 2
+	infraLoc->calculateStrength(128);
+	angle = infraLoc->calculateDirection(infraLoc->results);
 	printArray(infraLoc->results, angle);
 }
 
