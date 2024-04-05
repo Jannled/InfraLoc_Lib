@@ -114,8 +114,8 @@ void printMagnitudes(unsigned int fourierBin)
 	infraLoc->update();
 	infraLoc->calculateStrength(2);
 
-	//number_t angle = infraLoc->calculateDirection(infraLoc->results);
-	printArray(infraLoc->results, 0);
+	number_t angle = infraLoc->calculateDirection(infraLoc->results);
+	printArray(infraLoc->results, angle);
 }
 
 /**
@@ -126,8 +126,6 @@ void frequencySweep()
 {
 	std::array<number_t, 16> results;
 	results.fill(1337);
-
-	// TODO FIXME Looks like `InfraLoc::calculateStrength` results array is memory corrupted
 
 	infraLoc->update();
 	for(size_t k=0; k<CAPTURE_DEPTH/2 + 1; k++)

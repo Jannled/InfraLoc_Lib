@@ -108,7 +108,7 @@ number_t* bartlettWindow(const uint16_t input[], const uint16_t big_n, number_t 
 	output[0] = 0;
 	output[big_n - 1] = 0;
 
-	for(size_t i=1; i<big_n/2u - 1; i++)
+	for(size_t i=1; i<big_n/2u; i++)
 	{
 		const size_t b = big_n - 1 - i;		// Index from the back of the array
 		const number_t bf = 2.0f*i/big_n;	// Bartlett factor

@@ -130,10 +130,6 @@ void InfraLoc<N>::update()
 		// Stop adc data collection and select the next channel
 		stopSampling();
 	}
-
-	// Pull all the desired frequencies
-	calculateStrength(2);
-	this->results[0] = -1337.0f;
 }
 
 template<size_t N>
