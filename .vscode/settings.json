@@ -93,6 +93,8 @@
 		"mstd_iterator": "cpp"
 	},
 
+	"terminal.integrated.scrollback": 5000,
+
 	// Disable stupid GitLens features
 	"gitlens.ai.experimental.generateCommitMessage.enabled": false,
 	"gitlens.ai.experimental.openai.url": null,
@@ -104,21 +106,30 @@
 
 	// User Spellcheck Dictionary
 	"cSpell.words": [
+		"arange",
 		"arbula",
+		"arduino",
+		"axvline",
 		"bartlett",
 		"blackman",
+		"chan",
 		"clkdiv",
 		"cmplx",
 		"dreq",
 		"DREQ",
+		"dtype",
 		"dutycycle",
 		"fftfreq",
 		"figsize",
 		"fourier",
+		"freqs",
 		"goertzel",
 		"gpio",
 		"hexdump",
 		"INFRALOC",
+		"linestyle",
+		"linewidth",
+		"loadmat",
 		"microros",
 		"Microstar",
 		"Philhower",
@@ -129,7 +140,11 @@
 		"rclc",
 		"RCSOFTCHECK",
 		"ROSIDL",
+		"segs",
 		"tienstra",
-		"tparam"
+		"tparam",
+		"xlabel",
+		"xlim",
+		"ylim"
 	]
 }
