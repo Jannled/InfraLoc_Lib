@@ -12,7 +12,7 @@
 
 InfraNode::InfraNode()
 {
-
+	
 }
 
 InfraNode::~InfraNode()
@@ -33,6 +33,59 @@ void InfraNode::error_loop() {
 		delay(100);
 		digitalWrite(LED_BUILTIN, HIGH);
 	}
+}
+
+int InfraNode::init()
+{
+	set_microros_serial_transports(Serial);
+
+	allocator = rcl_get_default_allocator();
+
+	//create init_options
+	// The Program will enter error state at this point, 
+	// if no Serial connection could be established
+	RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
+
+	// create node
+	RCCHECK(rclc_node_init_default(&node, "infraloc", "", &support));
+
+	// Executor init example with the minimum RCLC executor handles required
+	executor = rclc_executor_get_zero_initialized_executor();
+	RCCHECK(rclc_executor_init(
+		&executor, &support.context,
+		RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES, &allocator
+	));
+
+	// Create rcl state machine
+	//state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+
+	// Create the lifecycle node
+	//rcl_ret_t rc = rclc_make_node_a_lifecycle_node(&my_lifecycle_node, &node, &state_machine, &allocator);
+
+	// Register lifecycle services on the allocator
+	//rclc_lifecycle_init_change_state_server(&my_lifecycle_node, &executor);
+	//rclc_lifecycle_init_get_available_states_server(&my_lifecycle_node, &executor);
+	//rclc_lifecycle_add_change_state_service(&my_lifecycle_node, &executor);
+
+	// rclc_lifecycle_init_get_state_server
+	// rclc_lifecycle_init_get_available_states_server
+	// rclc_lifecycle_init_change_state_server
+
+	createInfralocService();
+	createStrengthMessage();
+
+	createStrengthMessage2();
+
+	return RCL_RET_OK;
+}
+
+int InfraNode::update()
+{
+	// For whatever reason, the uController enters HardFault when the executor spins
+	//volatile rclc_executor_t test = executor;
+	// Spin executor to receive requests
+	//return rclc_executor_spin_some(&executor, 1000 * spinMillis);
+	return 0;
 }
 
 void callback_beacon_angle(const void *request_msg, void *response_msg)
@@ -117,36 +170,20 @@ int InfraNode::createStrengthMessage()
 	return rc;
 }
 
-int InfraNode::init()
+int InfraNode::createStrengthMessage2()
 {
-	set_microros_serial_transports(Serial);
+	const char* topic_name = "bucket_strength2";
 
-	allocator = rcl_get_default_allocator();
+	// Get message type support
+	const rosidl_message_type_support_t* type_support =
+		ROSIDL_GET_MSG_TYPE_SUPPORT(infraloc_interfaces, msg, BucketStrength);
 
-	//create init_options
-	RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
+	// Creates a reliable rcl publisher
+	rcl_ret_t rc = rclc_publisher_init_best_effort(
+		&strengthPublisher2, &node, type_support, topic_name
+	);
 
-	// create node
-	RCCHECK(rclc_node_init_default(&node, "infraloc", "", &support));
-
-	// Executor init example with the minimum RCLC executor handles required
-	executor = rclc_executor_get_zero_initialized_executor();
-	RCCHECK(rclc_executor_init(
-		&executor, &support.context,
-		RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES, &allocator
-	));
-
-	createInfralocService();
-	createStrengthMessage();
-
-	return RCL_RET_OK;
-}
-
-
-int InfraNode::update()
-{
-	// Spin executor to receive requests
-	return rclc_executor_spin_some(&executor, 1000000 * spinMillis);
+	return rc;
 }
 
 int InfraNode::publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values)
@@ -156,6 +193,15 @@ int InfraNode::publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS>
 		msg.bucket_strength[i] = values.at(i);
 
 	return rcl_publish(&strengthPublisher, &msg, NULL);
+}
+
+int InfraNode::publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values)
+{
+	infraloc_interfaces__msg__BucketStrength msg;
+	for(size_t i=0; i<INFRALOC_NUM_CHANNELS; i++)
+		msg.bucket_strength[i] = values.at(i);
+
+	return rcl_publish(&strengthPublisher2, &msg, NULL);
 }
 
 #endif // ROS2_ENABLED

@@ -37,3 +37,8 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# ROS2 Compiled
+extra_packages/**/build
+extra_packages/**/install
+extra_packages/**/log

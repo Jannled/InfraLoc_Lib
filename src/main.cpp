@@ -10,6 +10,7 @@
 #include "InfraLoc_Node.hpp"
 #endif
 #include <clocks.h>
+#include <mbed_error.h>
 
 #define CAPTURE_DEPTH 512
 
@@ -39,10 +40,29 @@ void printRawADC();
 void frequencySweep();
 void printMagnitudes(unsigned int fourierBin);
 
+#ifdef ARDUINO_ARCH_MBED
+/**
+ * @brief Called by MBed if an error is thrown / Arduino crashes
+ * @see https://os.mbed.com/docs/mbed-os/v6.16/apis/error-handling.html
+ * @param error_ctx 
+ */
+void my_mbed_error_handler(const mbed_error_ctx *error_ctx)
+{
+	volatile uint32_t lineNo = error_ctx->error_line_number;
+	volatile int errorNo = error_ctx->error_status;
+
+	digitalWrite(USR_LED_2, HIGH);
+}
+#endif
+
 void setup()
 {
 	// Enable Serial, it might be needed by microROS
 	Serial.begin(115200);
+
+	#ifdef ARDUINO_ARCH_MBED
+	mbed_set_error_hook(my_mbed_error_handler);
+	#endif
 
 	pinMode(LED_BUILTIN, OUTPUT);
 	pinMode(USR_LED_1, OUTPUT);
@@ -67,15 +87,24 @@ void setup()
 void loop()
 {
 	digitalWrite(LED_BUILTIN, HIGH);
-	digitalWrite(2, !digitalRead(2));
+	digitalWrite(USR_LED_1, !digitalRead(USR_LED_1));
 
 	#ifdef MICRO_ROS_ENABLED
 	// Gather infrared data
 	infraLoc->update();
+	infraLoc->calculateStrength(99);
 
 	// Update the microROS stuff
 	infraNode->publishBucketStrength(infraLoc->results);
+
 	infraNode->update();
+
+	infraLoc->calculateStrength(128);
+	infraNode->publishBucketStrength2(infraLoc->results);
+
+	infraNode->update();
+
+	delay(10);
 
 	#else
 	printMagnitudes(FREQ_BIN);

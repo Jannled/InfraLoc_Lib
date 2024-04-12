@@ -6,6 +6,8 @@
 		"editor.rulers": [50]
 	},
 
+	"window.zoomLevel": -0.5,
+
     // Prevent CMAKE PopUp
     "cmake.configureOnOpen": false,
 
@@ -19,6 +21,7 @@
 
 	// PlatformIO stuff?
 	"files.associations": {
+		"*.meta": "jsonc",
 		"*.toml": "ini",
 		"bitset": "cpp",
 		"array": "cpp",
@@ -112,13 +115,17 @@
 		"axvline",
 		"bartlett",
 		"blackman",
+		"blit",
 		"chan",
 		"clkdiv",
 		"cmplx",
 		"dreq",
 		"DREQ",
+		"DRMW",
 		"dtype",
+		"DUCLIENT",
 		"dutycycle",
+		"DUXR",
 		"fftfreq",
 		"figsize",
 		"fourier",
@@ -130,12 +137,16 @@
 		"linestyle",
 		"linewidth",
 		"loadmat",
+		"mbed",
 		"microros",
 		"Microstar",
+		"microxrcedds",
+		"olimex",
 		"Philhower",
 		"Pico",
 		"PICO",
 		"platformio",
+		"portenta",
 		"RCCHECK",
 		"rclc",
 		"RCSOFTCHECK",
@@ -143,6 +154,7 @@
 		"segs",
 		"tienstra",
 		"tparam",
+		"UXRCE",
 		"xlabel",
 		"xlim",
 		"ylim"
