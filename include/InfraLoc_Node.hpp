@@ -32,6 +32,7 @@ private:
 
 	// Duplicates Quick n Dirty
 	rcl_publisher_t strengthPublisher2;
+	rcl_publisher_t strengthPublisher3;
 
 public:
 	InfraNode();
@@ -49,6 +50,9 @@ public:
 	// // Duplicates Quick n Dirty
 	int createStrengthMessage2();
 	int publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values);
+
+	int createStrengthMessage3();
+	int publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values);
 };
 
 #endif // INFRALOC_MICRO_ROS_NODE_H

@@ -91,17 +91,20 @@ void loop()
 
 	#ifdef MICRO_ROS_ENABLED
 	// Gather infrared data
+	// Sender Frequencies: 20kHz, 30kHz, 40kHz, 50kHz
 	infraLoc->update();
-	infraLoc->calculateStrength(99);
 
 	// Update the microROS stuff
+	infraLoc->calculateStrength(51);
 	infraNode->publishBucketStrength(infraLoc->results);
-
 	infraNode->update();
 
-	infraLoc->calculateStrength(128);
+	infraLoc->calculateStrength(77);
 	infraNode->publishBucketStrength2(infraLoc->results);
+	infraNode->update();
 
+	infraLoc->calculateStrength(102);
+	infraNode->publishBucketStrength3(infraLoc->results);
 	infraNode->update();
 
 	delay(10);
@@ -110,7 +113,7 @@ void loop()
 	printMagnitudes(FREQ_BIN);
 	//frequencySweep();
 	//printRawADC();
-	#endif	
+	#endif
 }
 
 /**
