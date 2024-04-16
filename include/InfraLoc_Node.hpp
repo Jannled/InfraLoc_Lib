@@ -43,16 +43,16 @@ public:
 	int init();
 	int update();
 
-	int publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values);
+	int publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
 
 	static void error_loop();
 
 	// // Duplicates Quick n Dirty
 	int createStrengthMessage2();
-	int publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values);
+	int publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
 
 	int createStrengthMessage3();
-	int publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values);
+	int publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
 };
 
 #endif // INFRALOC_MICRO_ROS_NODE_H

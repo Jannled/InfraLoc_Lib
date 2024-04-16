@@ -75,6 +75,7 @@ int InfraNode::init()
 	createStrengthMessage();
 
 	createStrengthMessage2();
+	createStrengthMessage3();
 
 	return RCL_RET_OK;
 }
@@ -202,29 +203,32 @@ int InfraNode::createStrengthMessage3()
 	return rc;
 }
 
-int InfraNode::publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values)
+int InfraNode::publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle)
 {
 	infraloc_interfaces__msg__BucketStrength msg;
 	for(size_t i=0; i<INFRALOC_NUM_CHANNELS; i++)
 		msg.bucket_strength[i] = values.at(i);
+	msg.angle = angle;
 
 	return rcl_publish(&strengthPublisher, &msg, NULL);
 }
 
-int InfraNode::publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values)
+int InfraNode::publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle)
 {
 	infraloc_interfaces__msg__BucketStrength msg;
 	for(size_t i=0; i<INFRALOC_NUM_CHANNELS; i++)
 		msg.bucket_strength[i] = values.at(i);
+	msg.angle = angle;
 
 	return rcl_publish(&strengthPublisher2, &msg, NULL);
 }
 
-int InfraNode::publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values)
+int InfraNode::publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle)
 {
 	infraloc_interfaces__msg__BucketStrength msg;
 	for(size_t i=0; i<INFRALOC_NUM_CHANNELS; i++)
 		msg.bucket_strength[i] = values.at(i);
+	msg.angle = angle;
 
 	return rcl_publish(&strengthPublisher3, &msg, NULL);
 }

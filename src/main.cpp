@@ -4,13 +4,19 @@
 
 #include "infraloc_utils.hpp"
 #include "InfraLoc.hpp"
-#include "hardware/adc.h"
 
 #ifdef MICRO_ROS_ENABLED
 #include "InfraLoc_Node.hpp"
 #endif
-#include <clocks.h>
+
+#include <pico.h>
+#include <hardware/adc.h>
+#include <hardware/pwm.h>
+#include <hardware/clocks.h>
+
+#ifdef ARDUINO_ARCH_MBED
 #include <mbed_error.h>
+#endif
 
 #define CAPTURE_DEPTH 512
 
@@ -86,6 +92,8 @@ void setup()
 
 void loop()
 {
+	static number_t angle = -1;
+
 	digitalWrite(LED_BUILTIN, HIGH);
 	digitalWrite(USR_LED_1, !digitalRead(USR_LED_1));
 
@@ -96,18 +104,19 @@ void loop()
 
 	// Update the microROS stuff
 	infraLoc->calculateStrength(51);
-	infraNode->publishBucketStrength(infraLoc->results);
-	infraNode->update();
+	angle = infraLoc->calculateDirection(infraLoc->results);
+	infraNode->publishBucketStrength(infraLoc->results, angle);
 
-	infraLoc->calculateStrength(77);
-	infraNode->publishBucketStrength2(infraLoc->results);
-	infraNode->update();
+	infraLoc->calculateStrength(76);
+	angle = infraLoc->calculateDirection(infraLoc->results);
+	infraNode->publishBucketStrength2(infraLoc->results, angle);
 
 	infraLoc->calculateStrength(102);
-	infraNode->publishBucketStrength3(infraLoc->results);
-	infraNode->update();
+	angle = infraLoc->calculateDirection(infraLoc->results);
+	infraNode->publishBucketStrength3(infraLoc->results, angle);
 
 	delay(10);
+	infraNode->update();
 
 	#else
 	printMagnitudes(FREQ_BIN);
