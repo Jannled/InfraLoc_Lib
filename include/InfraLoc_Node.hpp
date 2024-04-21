@@ -33,6 +33,7 @@ private:
 	// Duplicates Quick n Dirty
 	rcl_publisher_t strengthPublisher2;
 	rcl_publisher_t strengthPublisher3;
+	rcl_publisher_t infraDataPublisher;
 
 public:
 	InfraNode();
@@ -53,6 +54,9 @@ public:
 
 	int createStrengthMessage3();
 	int publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
+
+	int createRawReadingsMessage();
+	int publishRawReadings(const number_t* values, const size_t numSamples);
 };
 
 #endif // INFRALOC_MICRO_ROS_NODE_H

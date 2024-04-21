@@ -15,6 +15,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BucketStrength.msg"
+  "msg/InfraData.msg"
   "srv/BeaconAngle.srv"
   # Add packages that above messages depend on
 )

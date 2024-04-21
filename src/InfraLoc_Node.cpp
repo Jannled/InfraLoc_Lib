@@ -7,7 +7,13 @@
 
 #include "rclc_parameter/rclc_parameter.h"
 #include "infraloc_interfaces/msg/bucket_strength.h"
+#include "infraloc_interfaces/msg/infra_data.h"
 #include "infraloc_interfaces/srv/beacon_angle.h"
+#include <tracetools/tracetools.h>
+#include <rcl/error_handling.h>
+
+#include "rcl/publisher.h"
+#include <rmw/error_handling.h>
 
 
 InfraNode::InfraNode()
@@ -76,6 +82,8 @@ int InfraNode::init()
 
 	createStrengthMessage2();
 	createStrengthMessage3();
+
+	createRawReadingsMessage();
 
 	return RCL_RET_OK;
 }
@@ -231,6 +239,30 @@ int InfraNode::publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS
 	msg.angle = angle;
 
 	return rcl_publish(&strengthPublisher3, &msg, NULL);
+}
+
+int InfraNode::createRawReadingsMessage()
+{
+	const char* topic_name = "infra_data";
+
+	// Get message type support
+	const rosidl_message_type_support_t* type_support =
+		ROSIDL_GET_MSG_TYPE_SUPPORT(infraloc_interfaces, msg, InfraData);
+
+	// Creates a reliable rcl publisher
+	rcl_ret_t rc = rclc_publisher_init_best_effort(
+		&infraDataPublisher, &node, type_support, topic_name
+	);
+
+	return rc;
+}
+
+int InfraNode::publishRawReadings(const number_t* values, const size_t numSamples)
+{
+	infraloc_interfaces__msg__InfraData msg;
+	memcpy(&msg.data, values, numSamples * sizeof(number_t));
+
+	return rcl_publish(&infraDataPublisher, &msg, NULL);
 }
 
 #endif // ROS2_ENABLED

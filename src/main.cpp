@@ -17,10 +17,11 @@
 #ifdef ARDUINO_ARCH_MBED
 #include <mbed_error.h>
 #endif
+#include <rmw/error_handling.h>
 
 #define CAPTURE_DEPTH 512
 
-#define SAMPLE_FREQ 200000u // 200kHz
+#define SAMPLE_FREQ 400000u	// 200kHz
 #define FREQ_BIN 2			// 99 = 38.672 kHz (98 = 38.281kHz) , 2 = 1kHz
 
 constexpr uint8_t MUX_S0 = 6u;
@@ -102,16 +103,20 @@ void loop()
 	// Sender Frequencies: 20kHz, 30kHz, 40kHz, 50kHz
 	infraLoc->update();
 
+	constexpr uint freq_1 = (20000*NUM_SAMPLES)/SAMPLE_FREQ;
+	constexpr uint freq_2 = (30000*NUM_SAMPLES)/SAMPLE_FREQ;
+	constexpr uint freq_3 = (40000*NUM_SAMPLES)/SAMPLE_FREQ;
+
 	// Update the microROS stuff
-	infraLoc->calculateStrength(51);
+	infraLoc->calculateStrength(freq_1);
 	angle = infraLoc->calculateDirection(infraLoc->results);
 	infraNode->publishBucketStrength(infraLoc->results, angle);
 
-	infraLoc->calculateStrength(76);
+	infraLoc->calculateStrength(freq_2);
 	angle = infraLoc->calculateDirection(infraLoc->results);
 	infraNode->publishBucketStrength2(infraLoc->results, angle);
 
-	infraLoc->calculateStrength(102);
+	infraLoc->calculateStrength(freq_3);
 	angle = infraLoc->calculateDirection(infraLoc->results);
 	infraNode->publishBucketStrength3(infraLoc->results, angle);
 

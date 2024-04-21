@@ -1,0 +1,21 @@
+{
+	"names": {
+		"microxrcedds_client": {
+			"cmake-args": [
+				"-DUCLIENT_SERIAL_TRANSPORT_MTU=2048",
+				"-DUCLIENT_CUSTOM_TRANSPORT_MTU=2048"
+			]
+		},
+		"rmw_microxrcedds": {
+			"cmake-args": [
+				"-DRMW_UXRCE_MAX_PUBLISHERS=8",
+				"-DRMW_UXRCE_MAX_SERVICES=6"
+			]
+		},
+		"rcutils": {
+			"cmake-args": [
+				"-DRCUTILS_AVOID_DYNAMIC_ALLOCATION=OFF"
+			]
+		}
+	}
+}

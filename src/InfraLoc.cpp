@@ -70,7 +70,7 @@ void InfraLoc<N>::switchChannels(uint8_t channel)
 	digitalWrite(this->mux_1, channelBits.test(1));
 	digitalWrite(this->mux_2, channelBits.test(2));
 	digitalWrite(this->mux_3, channelBits.test(3));
-	//delayMicroseconds(2);
+	delayMicroseconds(4);
 }
 
 template<size_t N>
