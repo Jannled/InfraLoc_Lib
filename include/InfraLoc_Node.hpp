@@ -8,7 +8,7 @@
 #include <rcl/node.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
-#include <rclc_lifecycle/rclc_lifecycle.h>
+#include <rclc_parameter/rclc_parameter.h>
 
 #include "mymath.hpp"
 #include "InfraLoc.hpp"
@@ -21,13 +21,12 @@ private:
 	rclc_support_t support;
 	rcl_allocator_t allocator;
 	rcl_node_t node;
-	rcl_lifecycle_state_machine_t state_machine;
-	rclc_lifecycle_node_t my_lifecycle_node;
+
+	rclc_parameter_server_t param_server;
 
 	rcl_publisher_t strengthPublisher;
 
 	int createParameterServer();
-	int createInfralocService();
 	int createStrengthMessage();
 
 	// Duplicates Quick n Dirty
@@ -39,7 +38,15 @@ public:
 	InfraNode();
 	~InfraNode();
 
-	unsigned int spinMillis = 50;
+	const unsigned int spinMillis = 100;
+
+	// Beacon positions
+	double chan_1_x = 0;
+	double chan_1_y = 0;
+	double chan_2_x = 0;
+	double chan_2_y = 0;
+	double chan_3_x = 0;
+	double chan_3_y = 0;
 
 	int init();
 	int update();
@@ -57,6 +64,8 @@ public:
 
 	int createRawReadingsMessage();
 	int publishRawReadings(const number_t* values, const size_t numSamples);
+
+	pos2 calculatePosition(number_t alpha, number_t beta, number_t gamma);
 };
 
 #endif // INFRALOC_MICRO_ROS_NODE_H

@@ -5,7 +5,6 @@
 
 #include <micro_ros_platformio.h>
 
-#include "rclc_parameter/rclc_parameter.h"
 #include "infraloc_interfaces/msg/bucket_strength.h"
 #include "infraloc_interfaces/msg/infra_data.h"
 #include "infraloc_interfaces/srv/beacon_angle.h"
@@ -15,6 +14,9 @@
 #include "rcl/publisher.h"
 #include <rmw/error_handling.h>
 
+#define NUM_HANDLES_NEEDED (RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1)
+
+bool on_parameter_changed(const Parameter* old_param, const Parameter* new_param, void* context);
 
 InfraNode::InfraNode()
 {
@@ -59,42 +61,24 @@ int InfraNode::init()
 	executor = rclc_executor_get_zero_initialized_executor();
 	RCCHECK(rclc_executor_init(
 		&executor, &support.context,
-		RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES, &allocator
+		NUM_HANDLES_NEEDED, &allocator
 	));
 
-	// Create rcl state machine
-	//state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
-
-	// Create the lifecycle node
-	//rcl_ret_t rc = rclc_make_node_a_lifecycle_node(&my_lifecycle_node, &node, &state_machine, &allocator);
-
-	// Register lifecycle services on the allocator
-	//rclc_lifecycle_init_change_state_server(&my_lifecycle_node, &executor);
-	//rclc_lifecycle_init_get_available_states_server(&my_lifecycle_node, &executor);
-	//rclc_lifecycle_add_change_state_service(&my_lifecycle_node, &executor);
-
-	// rclc_lifecycle_init_get_state_server
-	// rclc_lifecycle_init_get_available_states_server
-	// rclc_lifecycle_init_change_state_server
-
-	createInfralocService();
+	createParameterServer();
 	createStrengthMessage();
 
 	createStrengthMessage2();
 	createStrengthMessage3();
 
-	createRawReadingsMessage();
+	//createRawReadingsMessage();
 
 	return RCL_RET_OK;
 }
 
 int InfraNode::update()
 {
-	// For whatever reason, the uController enters HardFault when the executor spins
-	//volatile rclc_executor_t test = executor;
 	// Spin executor to receive requests
-	//return rclc_executor_spin_some(&executor, 1000 * spinMillis);
-	return 0;
+	return rclc_executor_spin_some(&executor, RCL_MS_TO_NS(spinMillis));
 }
 
 void callback_beacon_angle(const void *request_msg, void *response_msg)
@@ -116,51 +100,36 @@ void callback_beacon_angle(const void *request_msg, void *response_msg)
  */
 int InfraNode::createParameterServer()
 {
-	rclc_parameter_server_t param_server;
+	const rclc_parameter_options_t options = {
+		.notify_changed_over_dds = true,
+		.max_params = 8,
+		.allow_undeclared_parameters = false,
+		.low_mem_mode = false 
+	};
 
 	// Initialize parameter server with default configuration
-	rcl_ret_t rc = rclc_parameter_server_init_default(&param_server, &node);
+	rcl_ret_t rc = rclc_parameter_server_init_with_option(&param_server, &node, &options);
+
+	if(rc != RCL_RET_OK)
+		return rc;
+
+	// https://stackoverflow.com/questions/400257/how-can-i-pass-a-class-member-function-as-a-callback
+	rc = rclc_executor_add_parameter_server(&executor, &param_server, on_parameter_changed);
 
 	if(rc != RCL_RET_OK)
 		return rc;
 
 	// Add parameter to the server
-  	rc = rclc_add_parameter(&param_server, "sample_frequency", RCLC_PARAMETER_INT);
+  	rc = rclc_add_parameter(&param_server, "chan_1_x", RCLC_PARAMETER_DOUBLE);
+	//rc = rclc_add_parameter(&param_server, "chan_1_y", RCLC_PARAMETER_DOUBLE);
+	//rc = rclc_add_parameter(&param_server, "chan_2_x", RCLC_PARAMETER_DOUBLE);
+	//rc = rclc_add_parameter(&param_server, "chan_2_y", RCLC_PARAMETER_DOUBLE);
+	//rc = rclc_add_parameter(&param_server, "chan_3_x", RCLC_PARAMETER_DOUBLE);
+	//rc = rclc_add_parameter(&param_server, "chan_3_y", RCLC_PARAMETER_DOUBLE);
+
+	rclc_parameter_set_double(&param_server, "chan_1_x", 1.0);
 
 	return rc;
-}
-
-int InfraNode::createInfralocService()
-{
-	// Service server object
-	rcl_service_t service;
-	const char* service_name = "/beacon_angle";
-
-	// Get message type support
-	const rosidl_service_type_support_t *type_support =
-		ROSIDL_GET_SRV_TYPE_SUPPORT(infraloc_interfaces, srv, BeaconAngle);
-
-	// Initialize server with default configuration
-	rcl_ret_t rc = rclc_service_init_default(
-		&service, &node,
-		type_support, service_name);
-
-	if(rc != RCL_RET_OK)
-		return rc;
-
-	// Service message objects
-	infraloc_interfaces__srv__BeaconAngle_Response response_msg;
-	infraloc_interfaces__srv__BeaconAngle_Request request_msg;
-
-	// Add server callback to the executor
-	rc = rclc_executor_add_service(&executor, &service, &request_msg,
-		&response_msg, callback_beacon_angle
-	);
-
-	if(rc != RCL_RET_OK)
-		return rc;
-
-	return RCL_RET_OK;
 }
 
 int InfraNode::createStrengthMessage()
@@ -263,6 +232,26 @@ int InfraNode::publishRawReadings(const number_t* values, const size_t numSample
 	memcpy(&msg.data, values, numSamples * sizeof(number_t));
 
 	return rcl_publish(&infraDataPublisher, &msg, NULL);
+}
+
+pos2 InfraNode::calculatePosition(number_t alpha, number_t beta, number_t gamma)
+{
+	const vec2 pos_a = {chan_1_x, chan_1_y};
+	const vec2 pos_b = {chan_2_x, chan_2_y};
+	const vec2 pos_c = {chan_3_x, chan_3_y};
+
+	// Law of Cosines or Dot Product
+	// Dot product is easier
+	// https://muthu.co/using-the-law-of-cosines-and-vector-dot-product-formula-to-find-the-angle-between-three-points/
+	acos(euclideanDistance() * euclideanDistance())
+
+	tienstraMethod(pos_a, pos_b, pos_c, );
+}
+
+bool on_parameter_changed(const Parameter* old_param, const Parameter* new_param, void* context)
+{
+	Serial.println("Param changed");
+	return false;
 }
 
 #endif // ROS2_ENABLED

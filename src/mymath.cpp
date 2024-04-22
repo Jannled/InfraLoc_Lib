@@ -34,6 +34,17 @@ number_t euclideanDistance(const cmplx_t value)
 	return sqrt(value.re*value.re + value.im*value.im);
 }
 
+number_t magnitude(const vec2 value)
+{
+	return sqrt(value.x*value.x + value.y*value.y);
+}
+
+vec2 dot_product(const vec2 a, const vec2 b, const vec2 c)
+{
+	acos(magnitude() * magnitude())
+	return ;
+}
+
 cmplx_t cachedFourierComponent(number_t data[], const size_t n, const number_t k, number_t sinCache[], number_t cosCache[])
 {
 	cmplx_t big_x = {0};

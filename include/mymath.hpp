@@ -24,6 +24,13 @@ typedef struct
 	number_t y;
 } vec2;
 
+typedef struct
+{
+	number_t x;
+	number_t y;
+	number_t theta;
+} pos2;
+
 // https://stackoverflow.com/a/34465458
 template<int N, int k>
 struct SinCache {
@@ -50,6 +57,15 @@ cmplx_t sum(cmplx_t values[], size_t n);
 number_t manhattanDistance(cmplx_t value);
 
 number_t euclideanDistance(cmplx_t value);
+
+/**
+ * @brief The length of a vector (same as euclidean distance)
+ * @param vec2
+*/
+number_t magnitude(const vec2 value);
+
+
+vec2 dot_product(const vec2 a, const vec2 b);
 
 /**
  * @brief Calculate the frequency bin k of the discrete Fourier transformation

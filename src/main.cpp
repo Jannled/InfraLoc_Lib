@@ -107,6 +107,12 @@ void loop()
 	constexpr uint freq_2 = (30000*NUM_SAMPLES)/SAMPLE_FREQ;
 	constexpr uint freq_3 = (40000*NUM_SAMPLES)/SAMPLE_FREQ;
 
+	// TODO REMOVE
+	//const size_t data_len = infraLoc->captureBuff.at(0).size();
+	//number_t winData[data_len];
+	//noWindow(infraLoc->captureBuff.at(0).data(), data_len, winData);
+	//infraNode->publishRawReadings(winData, 120);
+
 	// Update the microROS stuff
 	infraLoc->calculateStrength(freq_1);
 	angle = infraLoc->calculateDirection(infraLoc->results);
