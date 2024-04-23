@@ -2,8 +2,8 @@
 	"names": {
 		"microxrcedds_client": {
 			"cmake-args": [
-				"-DUCLIENT_SERIAL_TRANSPORT_MTU=2048",
-				"-DUCLIENT_CUSTOM_TRANSPORT_MTU=2048"
+				"-DUCLIENT_SERIAL_TRANSPORT_MTU=512",
+				"-DUCLIENT_CUSTOM_TRANSPORT_MTU=512"
 			]
 		},
 		"rmw_microxrcedds": {

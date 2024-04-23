@@ -58,6 +58,9 @@ void my_mbed_error_handler(const mbed_error_ctx *error_ctx)
 	volatile uint32_t lineNo = error_ctx->error_line_number;
 	volatile int errorNo = error_ctx->error_status;
 
+	lineNo; // Prevent complaints from the compiler about unused variables
+	errorNo;
+
 	digitalWrite(USR_LED_2, HIGH);
 }
 #endif
@@ -93,41 +96,46 @@ void setup()
 
 void loop()
 {
-	static number_t angle = -1;
-
 	digitalWrite(LED_BUILTIN, HIGH);
 	digitalWrite(USR_LED_1, !digitalRead(USR_LED_1));
 
-	#ifdef MICRO_ROS_ENABLED
-	// Gather infrared data
 	// Sender Frequencies: 20kHz, 30kHz, 40kHz, 50kHz
-	infraLoc->update();
-
 	constexpr uint freq_1 = (20000*NUM_SAMPLES)/SAMPLE_FREQ;
 	constexpr uint freq_2 = (30000*NUM_SAMPLES)/SAMPLE_FREQ;
 	constexpr uint freq_3 = (40000*NUM_SAMPLES)/SAMPLE_FREQ;
 
+	// Gather infrared data
+	infraLoc->update();
+
+	#ifdef MICRO_ROS_ENABLED
 	// TODO REMOVE
 	//const size_t data_len = infraLoc->captureBuff.at(0).size();
 	//number_t winData[data_len];
 	//noWindow(infraLoc->captureBuff.at(0).data(), data_len, winData);
 	//infraNode->publishRawReadings(winData, 120);
 
-	// Update the microROS stuff
+	// Calculate all 3 angles
 	infraLoc->calculateStrength(freq_1);
-	angle = infraLoc->calculateDirection(infraLoc->results);
-	infraNode->publishBucketStrength(infraLoc->results, angle);
+	const number_t angle_a = infraLoc->calculateDirection(infraLoc->results);
+	infraNode->publishBucketStrength(infraLoc->results, angle_a);
 
 	infraLoc->calculateStrength(freq_2);
-	angle = infraLoc->calculateDirection(infraLoc->results);
-	infraNode->publishBucketStrength2(infraLoc->results, angle);
+	const number_t angle_b = infraLoc->calculateDirection(infraLoc->results);
+	infraNode->publishBucketStrength2(infraLoc->results, angle_b);
 
 	infraLoc->calculateStrength(freq_3);
-	angle = infraLoc->calculateDirection(infraLoc->results);
-	infraNode->publishBucketStrength3(infraLoc->results, angle);
+	const number_t angle_c = infraLoc->calculateDirection(infraLoc->results);
+	infraNode->publishBucketStrength3(infraLoc->results, angle_c);
 
-	delay(10);
+	// Use the the 3 angles for planar resection and publish to topic
+	const pos2 pose = infraNode->calculatePosition(angle_a, angle_b, angle_c);
+	infraNode->publishPositionMessage(pose);
+
+	// Tick the microROS executor
 	infraNode->update();
+
+	if(infraNode->positionUpdated)
+		infraNode->updatePositions();
 
 	#else
 	printMagnitudes(FREQ_BIN);

@@ -22,12 +22,14 @@ private:
 	rcl_allocator_t allocator;
 	rcl_node_t node;
 
-	rclc_parameter_server_t param_server;
+	static rclc_parameter_server_t param_server;
 
 	rcl_publisher_t strengthPublisher;
+	rcl_publisher_t positionPublisher;
 
 	int createParameterServer();
 	int createStrengthMessage();
+	int createPositionMessage();
 
 	// Duplicates Quick n Dirty
 	rcl_publisher_t strengthPublisher2;
@@ -41,17 +43,22 @@ public:
 	const unsigned int spinMillis = 100;
 
 	// Beacon positions
-	double chan_1_x = 0;
-	double chan_1_y = 0;
-	double chan_2_x = 0;
-	double chan_2_y = 0;
-	double chan_3_x = 0;
-	double chan_3_y = 0;
+	static vec2 pos_a;
+	static vec2 pos_b;
+	static vec2 pos_c;
+
+	static number_t ang_a_bc;
+	static number_t ang_b_ac;
+	static number_t ang_c_ab;
+
+	static bool positionUpdated;
 
 	int init();
 	int update();
 
 	int publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
+
+	int publishPositionMessage(const pos2 &pose);
 
 	static void error_loop();
 
@@ -65,7 +72,12 @@ public:
 	int createRawReadingsMessage();
 	int publishRawReadings(const number_t* values, const size_t numSamples);
 
-	pos2 calculatePosition(number_t alpha, number_t beta, number_t gamma);
+	/**
+	 * Rebuild the cache, after the positions of the sender/beacons have changed
+	*/
+	static void updatePositions();
+
+	pos2 calculatePosition(const number_t alpha, const number_t beta, const number_t gamma);
 };
 
 #endif // INFRALOC_MICRO_ROS_NODE_H

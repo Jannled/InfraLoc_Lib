@@ -39,10 +39,13 @@ number_t magnitude(const vec2 value)
 	return sqrt(value.x*value.x + value.y*value.y);
 }
 
-vec2 dot_product(const vec2 a, const vec2 b, const vec2 c)
+number_t vec_angle(const vec2 vec_ba, const vec2 vec_bc)
 {
-	acos(magnitude() * magnitude())
-	return ;
+	// https://muthu.co/using-the-law-of-cosines-and-vector-dot-product-formula-to-find-the-angle-between-three-points/
+	// or any other textbook on math really
+	const number_t nom = vec_ba.x*vec_bc.x + vec_ba.y*vec_bc.y;
+	const number_t denom = (magnitude(vec_bc)*magnitude(vec_ba));
+	return acos(nom/denom);
 }
 
 cmplx_t cachedFourierComponent(number_t data[], const size_t n, const number_t k, number_t sinCache[], number_t cosCache[])
@@ -84,13 +87,13 @@ number_t cachedFourierDC(number_t data[], const size_t n, const number_t k, numb
 void generateFourierCacheSin(number_t cache[], const size_t n, const number_t k)
 {
 	for(size_t i=0; i<n; i++)
-		cache[i] = sin((-2*MY_PI*k*i) / n);
+		cache[i] = sin((-2*M_PI*k*i) / n);
 }
 
 void generateFourierCacheCos(number_t cache[], const size_t n, const number_t k)
 {
 	for(size_t i=0; i<n; i++)
-		cache[i] = cos((-2*MY_PI*k*i) / n);
+		cache[i] = cos((-2*M_PI*k*i) / n);
 }
 
 cmplx_t fourierComponent(number_t values[], const size_t n, const number_t k)
@@ -99,8 +102,8 @@ cmplx_t fourierComponent(number_t values[], const size_t n, const number_t k)
 
 	for(size_t i=0; i<n; i++)
 	{
-		big_x.re += values[i] * cos((-2*MY_PI*k*i) / n);
-		big_x.im += values[i] * sin((-2*MY_PI*k*i) / n);
+		big_x.re += values[i] * cos((-2*M_PI*k*i) / n);
+		big_x.im += values[i] * sin((-2*M_PI*k*i) / n);
 	}
 
 	return big_x;
@@ -133,21 +136,21 @@ number_t* bartlettWindow(const uint16_t input[], const uint16_t big_n, number_t 
 number_t* hammingWindow(number_t* values, const size_t big_n)
 {
 	for(size_t i=0; i<big_n; i++)
-		values[i] *= 0.54 - 0.46 * cos((2*MY_PI*i)/big_n);
+		values[i] *= 0.54 - 0.46 * cos((2*M_PI*i)/big_n);
 	return values;
 }
 
 number_t* blackmanWindow(number_t* values, const size_t big_n)
 {
 	for(size_t i=0; i<big_n; i++)
-		values[i] *= 0.42 - 0.5 * cos((2*MY_PI*i)/big_n) + 0.08 * cos((4*MY_PI*i)/big_n);
+		values[i] *= 0.42 - 0.5 * cos((2*M_PI*i)/big_n) + 0.08 * cos((4*M_PI*i)/big_n);
 	return values;
 }
 
 cmplx_t generateGoertzelCache(const unsigned int big_n, const unsigned int k)
 {
-	const number_t W_re = 2 * cos(2 * MY_PI * k / big_n);
-	const number_t W_im = sin(2 * MY_PI * k / big_n);
+	const number_t W_re = 2 * cos(2 * M_PI * k / big_n);
+	const number_t W_im = sin(2 * M_PI * k / big_n);
 	return {W_re, W_im};
 }
 
@@ -170,8 +173,8 @@ cmplx_t cachedGoertzelAlgorithm(uint16_t *values, const unsigned int big_n, cons
 cmplx_t goertzelAlgorithm(number_t* values, const unsigned int big_n, const unsigned int k)
 {
 	// https://www.mstarlabs.com/dsp/goertzel/goertzel.html
-	const number_t W_re = 2 * cos(2 * MY_PI * k / big_n);
-	const number_t W_im = sin(2 * MY_PI * k / big_n);
+	const number_t W_re = 2 * cos(2 * M_PI * k / big_n);
+	const number_t W_im = sin(2 * M_PI * k / big_n);
 
 	number_t d1 = 0;
 	number_t d2 = 0;

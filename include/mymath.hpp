@@ -10,8 +10,6 @@ typedef double number_t;
 typedef float number_t;
 #endif
 
-constexpr double MY_PI = 4272943.0/1360120.0;
-
 typedef struct
 {
 	number_t re;
@@ -36,7 +34,7 @@ template<int N, int k>
 struct SinCache {
 	explicit constexpr SinCache(): lut() {
 		for(int i=0; i<N; i++)
-			lut[i] = sin((-2*MY_PI*k*i) / N);
+			lut[i] = sin((-2*M_PI*k*i) / N);
 	}
 	number_t lut[N];
 };
@@ -45,7 +43,7 @@ template<int N, int k>
 struct CosCache {
 	explicit constexpr CosCache(): lut() {
 		for(int i=0; i<N; i++)
-			lut[i] = cos((-2*MY_PI*k*i) / N);
+			lut[i] = cos((-2*M_PI*k*i) / N);
 	}
 	number_t lut[N];
 };
@@ -60,12 +58,16 @@ number_t euclideanDistance(cmplx_t value);
 
 /**
  * @brief The length of a vector (same as euclidean distance)
- * @param vec2
+ * @param value
 */
 number_t magnitude(const vec2 value);
 
-
-vec2 dot_product(const vec2 a, const vec2 b);
+/**
+ * @brief Calculate the angle between two vectors $\vec{BA}$ and $\vec{BC}$
+ * @param vec_ba
+ * @param vec_bc
+*/
+number_t vec_angle(const vec2 vec_ba, const vec2 vec_bc);
 
 /**
  * @brief Calculate the frequency bin k of the discrete Fourier transformation
@@ -91,11 +93,11 @@ cmplx_t compiledFourierComponent(const number_t values[])
 	constexpr auto fourierCache_cos = CosCache<n, k>();
 	constexpr auto fourierCache_sin = SinCache<n, k>();
 
-	static_assert(abs(MY_PI - 3.141) < 0.001);
+	static_assert(abs(M_PI - 3.141) < 0.001);
 
 	// Sanity check the correct generation of the LUT
-	static_assert(abs(cos(-2*MY_PI*k*16 / n) - fourierCache_cos.lut[16]) < 0.0000000000000001);
-	static_assert(abs(sin(-2*MY_PI*k*16 / n) - fourierCache_sin.lut[16]) < 0.0000000000000001);
+	static_assert(abs(cos(-2*M_PI*k*16 / n) - fourierCache_cos.lut[16]) < 0.0000000000000001);
+	static_assert(abs(sin(-2*M_PI*k*16 / n) - fourierCache_sin.lut[16]) < 0.0000000000000001);
 
 	cmplx_t big_x = {0};
 

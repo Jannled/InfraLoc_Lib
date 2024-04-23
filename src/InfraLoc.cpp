@@ -92,7 +92,7 @@ number_t InfraLoc<N>::getFrequencyComponent(const float k, const uint8_t channel
 template<size_t N>
 number_t InfraLoc<N>::calculateDirection(const std::array<number_t, INFRALOC_NUM_CHANNELS> &magnitudes)
 {
-	const number_t pieSize = 360.0f/INFRALOC_NUM_CHANNELS/2.0f;
+	const number_t pieSize = M_PI/INFRALOC_NUM_CHANNELS; // = 360.0f/INFRALOC_NUM_CHANNELS/2.0f;
 	const number_t offset = 0.85f;
 
 	uint8_t max_chan = 0;
@@ -108,7 +108,7 @@ number_t InfraLoc<N>::calculateDirection(const std::array<number_t, INFRALOC_NUM
 	const number_t seg_b = val_cw / val_ccw;
 	const number_t seg_d = val_ccw / val_cw;
 
-	return (360/INFRALOC_NUM_CHANNELS)*max_chan - pieSize/(seg_b+offset) + pieSize/(seg_d+offset);
+	return (M_TWOPI/INFRALOC_NUM_CHANNELS)*max_chan - pieSize/(seg_b+offset) + pieSize/(seg_d+offset);
 }
 
 template<size_t N>

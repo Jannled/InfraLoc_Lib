@@ -8,27 +8,33 @@
 #include "infraloc_interfaces/msg/bucket_strength.h"
 #include "infraloc_interfaces/msg/infra_data.h"
 #include "infraloc_interfaces/srv/beacon_angle.h"
+
 #include <tracetools/tracetools.h>
 #include <rcl/error_handling.h>
 
 #include "rcl/publisher.h"
 #include <rmw/error_handling.h>
 
+// https://github.com/ros2/common_interfaces/tree/rolling/geometry_msgs/msg
+#include "geometry_msgs/msg/pose2_d.h"
+
 #define NUM_HANDLES_NEEDED (RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1)
 
 bool on_parameter_changed(const Parameter* old_param, const Parameter* new_param, void* context);
 
+// Constructor. Not really used
 InfraNode::InfraNode()
 {
 	
 }
 
+// Destructor. Should never be called
 InfraNode::~InfraNode()
 {
 	// Clean up
 	rclc_executor_fini(&this->executor);
-	// other stuff
 	rclc_support_fini(&this->support);
+	rclc_parameter_server_fini(&param_server, &node);
 
 	error_loop();
 }
@@ -66,6 +72,7 @@ int InfraNode::init()
 
 	createParameterServer();
 	createStrengthMessage();
+	createPositionMessage();
 
 	createStrengthMessage2();
 	createStrengthMessage3();
@@ -121,13 +128,11 @@ int InfraNode::createParameterServer()
 
 	// Add parameter to the server
   	rc = rclc_add_parameter(&param_server, "chan_1_x", RCLC_PARAMETER_DOUBLE);
-	//rc = rclc_add_parameter(&param_server, "chan_1_y", RCLC_PARAMETER_DOUBLE);
-	//rc = rclc_add_parameter(&param_server, "chan_2_x", RCLC_PARAMETER_DOUBLE);
-	//rc = rclc_add_parameter(&param_server, "chan_2_y", RCLC_PARAMETER_DOUBLE);
-	//rc = rclc_add_parameter(&param_server, "chan_3_x", RCLC_PARAMETER_DOUBLE);
-	//rc = rclc_add_parameter(&param_server, "chan_3_y", RCLC_PARAMETER_DOUBLE);
-
-	rclc_parameter_set_double(&param_server, "chan_1_x", 1.0);
+	rc = rclc_add_parameter(&param_server, "chan_1_y", RCLC_PARAMETER_DOUBLE);
+	rc = rclc_add_parameter(&param_server, "chan_2_x", RCLC_PARAMETER_DOUBLE);
+	rc = rclc_add_parameter(&param_server, "chan_2_y", RCLC_PARAMETER_DOUBLE);
+	rc = rclc_add_parameter(&param_server, "chan_3_x", RCLC_PARAMETER_DOUBLE);
+	rc = rclc_add_parameter(&param_server, "chan_3_y", RCLC_PARAMETER_DOUBLE);
 
 	return rc;
 }
@@ -180,6 +185,28 @@ int InfraNode::createStrengthMessage3()
 	return rc;
 }
 
+int InfraNode::createPositionMessage()
+{
+	const char* topic_name = "pose";
+
+	/* 
+	 * In theory, Pose2D is deprecated. However I don't want to send a 
+	 * z-component plus a quaternion from a resource constrained device if they
+	 * are unnecessary...
+	*/
+
+	// Get message type support
+	const rosidl_message_type_support_t* type_support =
+		ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Pose2D);
+
+	// Creates a reliable rcl publisher
+	rcl_ret_t rc = rclc_publisher_init_best_effort(
+		&positionPublisher, &node, type_support, topic_name
+	);
+
+	return rc;
+}
+
 int InfraNode::publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle)
 {
 	infraloc_interfaces__msg__BucketStrength msg;
@@ -210,6 +237,17 @@ int InfraNode::publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS
 	return rcl_publish(&strengthPublisher3, &msg, NULL);
 }
 
+int InfraNode::publishPositionMessage(const pos2 &pose)
+{
+	geometry_msgs__msg__Pose2D msg;
+
+	msg.x = pose.x;
+	msg.y = pose.y;
+	msg.theta = pose.theta;
+
+	return rcl_publish(&positionPublisher, &msg, NULL);
+}
+
 int InfraNode::createRawReadingsMessage()
 {
 	const char* topic_name = "infra_data";
@@ -234,24 +272,67 @@ int InfraNode::publishRawReadings(const number_t* values, const size_t numSample
 	return rcl_publish(&infraDataPublisher, &msg, NULL);
 }
 
-pos2 InfraNode::calculatePosition(number_t alpha, number_t beta, number_t gamma)
+pos2 InfraNode::calculatePosition(const number_t angle_a, const number_t angle_b, const number_t angle_c)
 {
-	const vec2 pos_a = {chan_1_x, chan_1_y};
-	const vec2 pos_b = {chan_2_x, chan_2_y};
-	const vec2 pos_c = {chan_3_x, chan_3_y};
+	volatile number_t alpha = fmod(abs(angle_b - angle_c), M_PI);
+	volatile number_t beta = fmod(abs(angle_a - angle_c), M_PI);
+	volatile number_t gamma = fmod(abs(angle_a - angle_b), M_PI);
 
-	// Law of Cosines or Dot Product
-	// Dot product is easier
-	// https://muthu.co/using-the-law-of-cosines-and-vector-dot-product-formula-to-find-the-angle-between-three-points/
-	acos(euclideanDistance() * euclideanDistance())
+	vec2 pos = tienstraMethod(pos_a, pos_b, pos_c, alpha, beta, gamma, ang_a_bc, ang_b_ac, ang_c_ab);
+	return {pos.x, pos.y, -42};
+}
 
-	tienstraMethod(pos_a, pos_b, pos_c, );
+void InfraNode::updatePositions()
+{
+	// Clear the position updated flag. Using a flag to prevent multiple calls per `on_parameter_changed`
+	positionUpdated = false;
+
+	double chan_1_x = 0; 
+	double chan_1_y = 0;
+	double chan_2_x = 0;
+	double chan_2_y = 0;
+	double chan_3_x = 0;
+	double chan_3_y = 0;
+
+	rclc_parameter_get_double(&param_server, "chan_1_x", &chan_1_x);
+	rclc_parameter_get_double(&param_server, "chan_1_y", &chan_1_y);
+	rclc_parameter_get_double(&param_server, "chan_2_x", &chan_2_x);
+	rclc_parameter_get_double(&param_server, "chan_2_y", &chan_2_y);
+	rclc_parameter_get_double(&param_server, "chan_3_x", &chan_3_x);
+	rclc_parameter_get_double(&param_server, "chan_3_y", &chan_3_y);
+
+	pos_a.x = (number_t) chan_1_x;
+	pos_a.y = (number_t) chan_1_y;
+	pos_b.x = (number_t) chan_2_x;
+	pos_b.y = (number_t) chan_2_y;
+	pos_c.x = (number_t) chan_3_x;
+	pos_c.y = (number_t) chan_3_y;
+
+	ang_a_bc = vec_angle({pos_a.x-pos_b.x, pos_a.y-pos_b.y}, {pos_a.x-pos_c.x, pos_a.y-pos_c.y});
+	ang_b_ac = vec_angle({pos_b.x-pos_a.x, pos_b.y-pos_a.y}, {pos_b.x-pos_c.x, pos_b.y-pos_c.y});
+	ang_c_ab = vec_angle({pos_c.x-pos_a.x, pos_c.y-pos_a.y}, {pos_c.x-pos_b.x, pos_c.y-pos_b.y});
 }
 
 bool on_parameter_changed(const Parameter* old_param, const Parameter* new_param, void* context)
 {
-	Serial.println("Param changed");
-	return false;
+	if(old_param == NULL || new_param == NULL)
+		return false;
+
+	InfraNode::positionUpdated = true;
+	return true;
 }
+
+// Init static members
+rclc_parameter_server_t InfraNode::param_server;
+
+vec2 InfraNode::pos_a;
+vec2 InfraNode::pos_b;
+vec2 InfraNode::pos_c;
+
+number_t InfraNode::ang_a_bc;
+number_t InfraNode::ang_b_ac;
+number_t InfraNode::ang_c_ab;
+
+bool InfraNode::positionUpdated;
 
 #endif // ROS2_ENABLED
