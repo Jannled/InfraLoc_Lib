@@ -282,7 +282,14 @@ pos2 InfraNode::calculatePosition(const number_t angle_a, const number_t angle_b
 	volatile number_t gamma = abs(SMALLER_ANGLE(angle_a - angle_b));
 
 	vec2 pos = tienstraMethod(pos_a, pos_b, pos_c, alpha, beta, gamma, ang_a_bc, ang_b_ac, ang_c_ab);
-	return {pos.x, pos.y, -42};
+
+	const vec2 yAxis = {0, 1};
+	const vec2 klein_a = {InfraNode::pos_a.x - pos.x, InfraNode::pos_a.y - pos.y};
+	number_t ang = vec_angle(yAxis, klein_a);
+	volatile number_t ang2 = ang - angle_a;
+	volatile number_t test = ang_a_bc;
+
+	return {pos.x, pos.y, (number_t) ang * 180.0f/M_PI};
 }
 
 void InfraNode::updatePositions()

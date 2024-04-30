@@ -6,8 +6,6 @@
 		"editor.rulers": [50]
 	},
 
-	"window.zoomLevel": -0.5,
-
     // Prevent CMAKE PopUp
     "cmake.configureOnOpen": false,
 
