@@ -15,8 +15,12 @@
 #include "rcl/publisher.h"
 #include <rmw/error_handling.h>
 
+#ifdef INFRA_POS_3D
 // https://github.com/ros2/common_interfaces/tree/rolling/geometry_msgs/msg
+#include "geometry_msgs/msg/pose_stamped.h"
+#else
 #include "geometry_msgs/msg/pose2_d.h"
+#endif
 
 #define NUM_HANDLES_NEEDED (RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1)
 
@@ -188,19 +192,23 @@ int InfraNode::createStrengthMessage3()
 	return rc;
 }
 
+/* 
+ * In theory, Pose2D is deprecated. However I don't want to send a 
+ * z-component plus a quaternion from a resource constrained device if they
+ * are unnecessary...
+ */
 int InfraNode::createPositionMessage()
 {
-	const char* topic_name = "pose";
-
-	/* 
-	 * In theory, Pose2D is deprecated. However I don't want to send a 
-	 * z-component plus a quaternion from a resource constrained device if they
-	 * are unnecessary...
-	*/
+	const char* topic_name = "test2";
 
 	// Get message type support
+	#ifdef INFRA_POS_3D
+	const rosidl_message_type_support_t* type_support =
+		ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, PoseStamped);
+	#else
 	const rosidl_message_type_support_t* type_support =
 		ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Pose2D);
+	#endif
 
 	// Creates a reliable rcl publisher
 	rcl_ret_t rc = rclc_publisher_init_best_effort(
@@ -242,37 +250,35 @@ int InfraNode::publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS
 
 int InfraNode::publishPositionMessage(const pos2 &pose)
 {
+	#ifdef INFRA_POS_3D
+	//const uint64_t t = rmw_uros_epoch_nanos();
+	geometry_msgs__msg__PoseStamped msg;
+
+	// 3D Position
+	msg.pose.position.x = pose.x;
+	msg.pose.position.y = pose.y;
+	msg.pose.position.z = 0;
+
+	// Quaternion Rotation
+	// https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
+	msg.pose.orientation.x = 0;
+	msg.pose.orientation.y = 0;
+	msg.pose.orientation.z = sin(pose.theta/2);
+	msg.pose.orientation.w = cos(pose.theta/2);
+
+	// Message header
+	//msg.header.frame_id = ; // microROS PIO defines a string len of 1 including '\0'...
+	msg.header.stamp.sec = 0;//RCL_NS_TO_S(t);
+	msg.header.stamp.nanosec = 0;
+	#else
 	geometry_msgs__msg__Pose2D msg;
 
 	msg.x = pose.x;
 	msg.y = pose.y;
 	msg.theta = pose.theta;
+	#endif
 
 	return rcl_publish(&positionPublisher, &msg, NULL);
-}
-
-int InfraNode::createRawReadingsMessage()
-{
-	const char* topic_name = "infra_data";
-
-	// Get message type support
-	const rosidl_message_type_support_t* type_support =
-		ROSIDL_GET_MSG_TYPE_SUPPORT(infraloc_interfaces, msg, InfraData);
-
-	// Creates a reliable rcl publisher
-	rcl_ret_t rc = rclc_publisher_init_best_effort(
-		&infraDataPublisher, &node, type_support, topic_name
-	);
-
-	return rc;
-}
-
-int InfraNode::publishRawReadings(const number_t* values, const size_t numSamples)
-{
-	infraloc_interfaces__msg__InfraData msg;
-	memcpy(&msg.data, values, numSamples * sizeof(number_t));
-
-	return rcl_publish(&infraDataPublisher, &msg, NULL);
 }
 
 pos2 InfraNode::calculatePosition(const number_t angle_a, const number_t angle_b, const number_t angle_c)
@@ -284,12 +290,12 @@ pos2 InfraNode::calculatePosition(const number_t angle_a, const number_t angle_b
 	vec2 pos = tienstraMethod(pos_a, pos_b, pos_c, alpha, beta, gamma, ang_a_bc, ang_b_ac, ang_c_ab);
 
 	const vec2 yAxis = {0, 1};
-	const vec2 klein_a = {InfraNode::pos_a.x - pos.x, InfraNode::pos_a.y - pos.y};
-	number_t ang = vec_angle(yAxis, klein_a);
+	const vec2 vec_pa = {InfraNode::pos_a.x - pos.x, InfraNode::pos_a.y - pos.y};
+	number_t ang = vec_angle(yAxis, vec_pa); // FIXME Only works for a=(0; 0)
 	volatile number_t ang2 = ang - angle_a;
 	volatile number_t test = ang_a_bc;
 
-	return {pos.x, pos.y, (number_t) ang * 180.0f/M_PI};
+	return {pos.x, pos.y, (number_t) (ang * 180.0f/ M_PI)};
 }
 
 void InfraNode::updatePositions()

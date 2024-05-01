@@ -108,11 +108,6 @@ void loop()
 	infraLoc->update();
 
 	#ifdef MICRO_ROS_ENABLED
-	// TODO REMOVE
-	//const size_t data_len = infraLoc->captureBuff.at(0).size();
-	//number_t winData[data_len];
-	//noWindow(infraLoc->captureBuff.at(0).data(), data_len, winData);
-	//infraNode->publishRawReadings(winData, 120);
 
 	// Calculate all 3 angles
 	infraLoc->calculateStrength(freq_1);

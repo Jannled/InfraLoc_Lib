@@ -60,9 +60,6 @@ public:
 	void update();
 
 	void calculateStrength(unsigned int k);
-
-	/*void printArray(std::array<unsigned int, N> &arr);
-	void printArray(std::array<uint16_t, N> &arr);*/
 };
 
 #endif // INFRALOC_CPP

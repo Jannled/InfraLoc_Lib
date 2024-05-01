@@ -28,8 +28,11 @@ private:
 	rcl_publisher_t positionPublisher;
 
 	int createParameterServer();
-	int createStrengthMessage();
 	int createPositionMessage();
+
+	int createStrengthMessage();
+	int createStrengthMessage2();
+	int createStrengthMessage3();
 
 	// Duplicates Quick n Dirty
 	rcl_publisher_t strengthPublisher2;
@@ -57,20 +60,12 @@ public:
 	int update();
 
 	int publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
+	int publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
+	int publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
 
 	int publishPositionMessage(const pos2 &pose);
 
 	static void error_loop();
-
-	// // Duplicates Quick n Dirty
-	int createStrengthMessage2();
-	int publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
-
-	int createStrengthMessage3();
-	int publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
-
-	int createRawReadingsMessage();
-	int publishRawReadings(const number_t* values, const size_t numSamples);
 
 	/**
 	 * Rebuild the cache, after the positions of the sender/beacons have changed
