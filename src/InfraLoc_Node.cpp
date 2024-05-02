@@ -21,6 +21,7 @@
 #else
 #include "geometry_msgs/msg/pose2_d.h"
 #endif
+#include <micro_ros_utilities/type_utilities.h>
 
 #define NUM_HANDLES_NEEDED (RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1)
 
@@ -76,6 +77,9 @@ int InfraNode::init()
 		&executor, &support.context,
 		NUM_HANDLES_NEEDED, &allocator
 	));
+
+	const uint timeout_ms = 1000;
+	rmw_uros_sync_session(timeout_ms);
 
 	createParameterServer();
 	createStrengthMessage();
@@ -199,7 +203,7 @@ int InfraNode::createStrengthMessage3()
  */
 int InfraNode::createPositionMessage()
 {
-	const char* topic_name = "test2";
+	const char* topic_name = "pose";
 
 	// Get message type support
 	#ifdef INFRA_POS_3D
@@ -251,8 +255,13 @@ int InfraNode::publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS
 int InfraNode::publishPositionMessage(const pos2 &pose)
 {
 	#ifdef INFRA_POS_3D
-	//const uint64_t t = rmw_uros_epoch_nanos();
+	static micro_ros_utilities_memory_conf_t conf = {0};
+	const uint64_t t = rmw_uros_epoch_nanos();
 	geometry_msgs__msg__PoseStamped msg;
+
+	bool success = micro_ros_utilities_create_message_memory(
+		ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, PoseStamped), &msg,	conf
+	);
 
 	// 3D Position
 	msg.pose.position.x = pose.x;
@@ -267,8 +276,9 @@ int InfraNode::publishPositionMessage(const pos2 &pose)
 	msg.pose.orientation.w = cos(pose.theta/2);
 
 	// Message header
-	//msg.header.frame_id = ; // microROS PIO defines a string len of 1 including '\0'...
-	msg.header.stamp.sec = 0;//RCL_NS_TO_S(t);
+	strcpy(msg.header.frame_id.data, "map");
+	msg.header.frame_id.size = strlen(msg.header.frame_id.data);
+	msg.header.stamp.sec = RCL_NS_TO_S(t);
 	msg.header.stamp.nanosec = 0;
 	#else
 	geometry_msgs__msg__Pose2D msg;
@@ -291,11 +301,9 @@ pos2 InfraNode::calculatePosition(const number_t angle_a, const number_t angle_b
 
 	const vec2 yAxis = {0, 1};
 	const vec2 vec_pa = {InfraNode::pos_a.x - pos.x, InfraNode::pos_a.y - pos.y};
-	number_t ang = vec_angle(yAxis, vec_pa); // FIXME Only works for a=(0; 0)
-	volatile number_t ang2 = ang - angle_a;
-	volatile number_t test = ang_a_bc;
+	number_t ang = vec_angle(yAxis, vec_pa) - angle_a; // FIXME Only works for a=(0; 0)
 
-	return {pos.x, pos.y, (number_t) (ang * 180.0f/ M_PI)};
+	return {pos.x, pos.y, ang};
 }
 
 void InfraNode::updatePositions()
