@@ -10,6 +10,15 @@ typedef double number_t;
 typedef float number_t;
 #endif
 
+/**
+ * Basically every documentation you find about the `%` operator tells you, 
+ * that this is modulo, when in fact it is not. It is the remainder!
+ * This makes a big difference for negative numbers...
+ * 
+ * Therefore this method implements this properly
+*/
+#define MODULO(X, N) (((X)%(N) + (N))%(N))
+
 typedef struct
 {
 	number_t re;
@@ -170,7 +179,7 @@ number_t* bartlettWindow(const uint16_t input[], const uint16_t big_n, number_t 
  * @param N 
  * @return constexpr number_t* 
  */
-number_t* hammingWindow(number_t* values, const size_t big_n);
+number_t* hammingWindow(const uint16_t input[], const uint16_t big_n, number_t output[]);
 
 /**
  * @brief Blackman Window
@@ -181,7 +190,7 @@ number_t* hammingWindow(number_t* values, const size_t big_n);
  * @param N length of the values
  * @return constexpr number_t* 
  */
-number_t* blackmanWindow(number_t* values, const size_t big_n);
+number_t* blackmanWindow(const uint16_t input[], const uint16_t big_n, number_t output[]);
 
 /**
  * @brief Goertzel Algorithm

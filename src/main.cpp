@@ -100,6 +100,7 @@ void loop()
 	digitalWrite(USR_LED_1, !digitalRead(USR_LED_1));
 
 	// Sender Frequencies: 20kHz, 30kHz, 40kHz, 50kHz
+	//constexpr uint freq_1 = (38400*NUM_SAMPLES)/SAMPLE_FREQ;
 	constexpr uint freq_1 = (20000*NUM_SAMPLES)/SAMPLE_FREQ;
 	constexpr uint freq_2 = (30000*NUM_SAMPLES)/SAMPLE_FREQ;
 	constexpr uint freq_3 = (40000*NUM_SAMPLES)/SAMPLE_FREQ;
@@ -112,15 +113,21 @@ void loop()
 	// Calculate all 3 angles
 	infraLoc->calculateStrength(freq_1);
 	const number_t angle_a = infraLoc->calculateDirection(infraLoc->results);
-	infraNode->publishBucketStrength(infraLoc->results, angle_a);
+	#ifdef DEBUG_INFRA_BUCKETS 
+	infraNode->publishBucketStrength(infraLoc->results, angle_a); 
+	#endif
 
 	infraLoc->calculateStrength(freq_2);
 	const number_t angle_b = infraLoc->calculateDirection(infraLoc->results);
-	infraNode->publishBucketStrength2(infraLoc->results, angle_b);
+	#ifdef DEBUG_INFRA_BUCKETS 
+	infraNode->publishBucketStrength2(infraLoc->results, angle_b); 
+	#endif
 
 	infraLoc->calculateStrength(freq_3);
 	const number_t angle_c = infraLoc->calculateDirection(infraLoc->results);
-	infraNode->publishBucketStrength3(infraLoc->results, angle_c);
+	#ifdef DEBUG_INFRA_BUCKETS
+	infraNode->publishBucketStrength3(infraLoc->results, angle_c); 
+	#endif
 
 	// Use the the 3 angles for planar resection and publish to topic
 	const pos2 pose = infraNode->calculatePosition(angle_a, angle_b, angle_c);

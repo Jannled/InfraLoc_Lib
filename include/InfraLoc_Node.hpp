@@ -24,20 +24,20 @@ private:
 
 	static rclc_parameter_server_t param_server;
 
-	rcl_publisher_t strengthPublisher;
 	rcl_publisher_t positionPublisher;
 
 	int createParameterServer();
 	int createPositionMessage();
 
+	#ifdef DEBUG_INFRA_BUCKETS
+	rcl_publisher_t strengthPublisher;
+	rcl_publisher_t strengthPublisher2;
+	rcl_publisher_t strengthPublisher3;
+
 	int createStrengthMessage();
 	int createStrengthMessage2();
 	int createStrengthMessage3();
-
-	// Duplicates Quick n Dirty
-	rcl_publisher_t strengthPublisher2;
-	rcl_publisher_t strengthPublisher3;
-	rcl_publisher_t infraDataPublisher;
+	#endif
 
 public:
 	InfraNode();
@@ -59,9 +59,11 @@ public:
 	int init();
 	int update();
 
+	#ifdef DEBUG_INFRA_BUCKETS
 	int publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
 	int publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
 	int publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
+	#endif
 
 	int publishPositionMessage(const pos2 &pose);
 

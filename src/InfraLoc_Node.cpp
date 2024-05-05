@@ -78,17 +78,18 @@ int InfraNode::init()
 		NUM_HANDLES_NEEDED, &allocator
 	));
 
+	// Synchronize local time with agent time (Timeout after 1 second)
 	const uint timeout_ms = 1000;
 	rmw_uros_sync_session(timeout_ms);
 
 	createParameterServer();
-	createStrengthMessage();
 	createPositionMessage();
 
+	#ifdef DEBUG_INFRA_BUCKETS
+	createStrengthMessage();
 	createStrengthMessage2();
 	createStrengthMessage3();
-
-	//createRawReadingsMessage();
+	#endif
 
 	return RCL_RET_OK;
 }
@@ -148,6 +149,7 @@ int InfraNode::createParameterServer()
 	return rc;
 }
 
+#ifdef DEBUG_INFRA_BUCKETS
 int InfraNode::createStrengthMessage()
 {
 	const char* topic_name = "bucket_strength";
@@ -196,32 +198,6 @@ int InfraNode::createStrengthMessage3()
 	return rc;
 }
 
-/* 
- * In theory, Pose2D is deprecated. However I don't want to send a 
- * z-component plus a quaternion from a resource constrained device if they
- * are unnecessary...
- */
-int InfraNode::createPositionMessage()
-{
-	const char* topic_name = "pose";
-
-	// Get message type support
-	#ifdef INFRA_POS_3D
-	const rosidl_message_type_support_t* type_support =
-		ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, PoseStamped);
-	#else
-	const rosidl_message_type_support_t* type_support =
-		ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Pose2D);
-	#endif
-
-	// Creates a reliable rcl publisher
-	rcl_ret_t rc = rclc_publisher_init_best_effort(
-		&positionPublisher, &node, type_support, topic_name
-	);
-
-	return rc;
-}
-
 int InfraNode::publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle)
 {
 	infraloc_interfaces__msg__BucketStrength msg;
@@ -251,6 +227,33 @@ int InfraNode::publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS
 
 	return rcl_publish(&strengthPublisher3, &msg, NULL);
 }
+#endif
+
+/* 
+ * In theory, Pose2D is deprecated. However I don't want to send a 
+ * z-component plus a quaternion from a resource constrained device if they
+ * are unnecessary...
+ */
+int InfraNode::createPositionMessage()
+{
+	const char* topic_name = "pose";
+
+	// Get message type support
+	#ifdef INFRA_POS_3D
+	const rosidl_message_type_support_t* type_support =
+		ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, PoseStamped);
+	#else
+	const rosidl_message_type_support_t* type_support =
+		ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Pose2D);
+	#endif
+
+	// Creates a reliable rcl publisher
+	rcl_ret_t rc = rclc_publisher_init_best_effort(
+		&positionPublisher, &node, type_support, topic_name
+	);
+
+	return rc;
+}
 
 int InfraNode::publishPositionMessage(const pos2 &pose)
 {
@@ -259,9 +262,14 @@ int InfraNode::publishPositionMessage(const pos2 &pose)
 	const uint64_t t = rmw_uros_epoch_nanos();
 	geometry_msgs__msg__PoseStamped msg;
 
+	static char* frameID = "map";
+
 	bool success = micro_ros_utilities_create_message_memory(
 		ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, PoseStamped), &msg,	conf
 	);
+
+	if(!success)
+		error_loop();
 
 	// 3D Position
 	msg.pose.position.x = pose.x;
@@ -276,10 +284,10 @@ int InfraNode::publishPositionMessage(const pos2 &pose)
 	msg.pose.orientation.w = cos(pose.theta/2);
 
 	// Message header
-	strcpy(msg.header.frame_id.data, "map");
+	msg.header.frame_id.data = frameID;
 	msg.header.frame_id.size = strlen(msg.header.frame_id.data);
 	msg.header.stamp.sec = RCL_NS_TO_S(t);
-	msg.header.stamp.nanosec = 0;
+	msg.header.stamp.nanosec = t % RCL_S_TO_NS(1);
 	#else
 	geometry_msgs__msg__Pose2D msg;
 
@@ -299,9 +307,8 @@ pos2 InfraNode::calculatePosition(const number_t angle_a, const number_t angle_b
 
 	vec2 pos = tienstraMethod(pos_a, pos_b, pos_c, alpha, beta, gamma, ang_a_bc, ang_b_ac, ang_c_ab);
 
-	const vec2 yAxis = {0, 1};
 	const vec2 vec_pa = {InfraNode::pos_a.x - pos.x, InfraNode::pos_a.y - pos.y};
-	number_t ang = vec_angle(yAxis, vec_pa) - angle_a; // FIXME Only works for a=(0; 0)
+	number_t ang = atan2(vec_pa.y, vec_pa.x) + angle_a;
 
 	return {pos.x, pos.y, ang};
 }

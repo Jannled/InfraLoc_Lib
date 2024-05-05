@@ -102,8 +102,8 @@ number_t InfraLoc<N>::calculateDirection(const std::array<number_t, INFRALOC_NUM
 			max_chan = i;
 	}
 
-	const number_t val_cw  = magnitudes[(max_chan + 1) % INFRALOC_NUM_CHANNELS];
-	const number_t val_ccw = magnitudes[(max_chan - 1) % INFRALOC_NUM_CHANNELS];
+	const number_t val_cw  = magnitudes[MODULO(max_chan + 1, INFRALOC_NUM_CHANNELS)];
+	const number_t val_ccw = magnitudes[MODULO(max_chan - 1, INFRALOC_NUM_CHANNELS)];
 
 	const number_t seg_b = val_cw / val_ccw;
 	const number_t seg_d = val_ccw / val_cw;

@@ -133,18 +133,18 @@ number_t* bartlettWindow(const uint16_t input[], const uint16_t big_n, number_t 
 	return output;
 }
 
-number_t* hammingWindow(number_t* values, const size_t big_n)
+number_t* hammingWindow(const uint16_t input[], const uint16_t big_n, number_t output[])
 {
 	for(size_t i=0; i<big_n; i++)
-		values[i] *= 0.54 - 0.46 * cos((2*M_PI*i)/big_n);
-	return values;
+		output[i] = input[i]*(0.54 - 0.46 * cos((2*M_PI*i)/big_n));
+	return output;
 }
 
-number_t* blackmanWindow(number_t* values, const size_t big_n)
+number_t* blackmanWindow(const uint16_t input[], const uint16_t big_n, number_t output[])
 {
 	for(size_t i=0; i<big_n; i++)
-		values[i] *= 0.42 - 0.5 * cos((2*M_PI*i)/big_n) + 0.08 * cos((4*M_PI*i)/big_n);
-	return values;
+		output[i] = input[i]*(0.42 - 0.5*cos((2*M_PI*i)/big_n) + 0.08*cos((4*M_PI*i)/big_n));
+	return output;
 }
 
 cmplx_t generateGoertzelCache(const unsigned int big_n, const unsigned int k)
