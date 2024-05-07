@@ -19,11 +19,16 @@
 #endif
 #include <rmw/error_handling.h>
 
+// Setting for InfraLoc
 #define CAPTURE_DEPTH 512
-
 #define SAMPLE_FREQ 400000u	// 200kHz
-#define FREQ_BIN 2			// 99 = 38.672 kHz (98 = 38.281kHz) , 2 = 1kHz
 
+// Sender Frequencies: 20kHz, 30kHz, 40kHz, 50kHz
+constexpr uint freq_1 = 20000; // Hz
+constexpr uint freq_2 = 30000; // Hz
+constexpr uint freq_3 = 40000; // Hz
+
+// Pin Definitions
 constexpr uint8_t MUX_S0 = 6u;
 constexpr uint8_t MUX_S1 = 7u;
 constexpr uint8_t MUX_S2 = 8u;
@@ -35,6 +40,7 @@ constexpr uint8_t USR_LED_2 = 3;
 constexpr uint8_t USR_BTN = 21;
 constexpr uint8_t PWM_PIN = 20;
 
+// 
 InfraLoc<CAPTURE_DEPTH>* infraLoc;
 
 #ifdef MICRO_ROS_ENABLED
@@ -99,32 +105,38 @@ void loop()
 	digitalWrite(LED_BUILTIN, HIGH);
 	digitalWrite(USR_LED_1, !digitalRead(USR_LED_1));
 
-	// Sender Frequencies: 20kHz, 30kHz, 40kHz, 50kHz
-	//constexpr uint freq_1 = (38400*NUM_SAMPLES)/SAMPLE_FREQ;
-	constexpr uint freq_1 = (20000*NUM_SAMPLES)/SAMPLE_FREQ;
-	constexpr uint freq_2 = (30000*NUM_SAMPLES)/SAMPLE_FREQ;
-	constexpr uint freq_3 = (40000*NUM_SAMPLES)/SAMPLE_FREQ;
+	// Bucket index
+	constexpr uint bucket_1 = (freq_1*NUM_SAMPLES)/SAMPLE_FREQ;
+	constexpr uint bucket_2 = (freq_2*NUM_SAMPLES)/SAMPLE_FREQ;
+	constexpr uint bucket_3 = (freq_3*NUM_SAMPLES)/SAMPLE_FREQ;
 
 	// Gather infrared data
 	infraLoc->update();
 
 	#ifdef MICRO_ROS_ENABLED
 
+	float rssi_1 = 0;
+	float rssi_2 = 0;
+	float rssi_3 = 0;
+
 	// Calculate all 3 angles
-	infraLoc->calculateStrength(freq_1);
+	infraLoc->calculateStrength(bucket_1);
 	const number_t angle_a = infraLoc->calculateDirection(infraLoc->results);
+	rssi_1 = infraLoc->rssi;
 	#ifdef DEBUG_INFRA_BUCKETS 
 	infraNode->publishBucketStrength(infraLoc->results, angle_a); 
 	#endif
 
-	infraLoc->calculateStrength(freq_2);
+	infraLoc->calculateStrength(bucket_2);
 	const number_t angle_b = infraLoc->calculateDirection(infraLoc->results);
+	rssi_2 = infraLoc->rssi;
 	#ifdef DEBUG_INFRA_BUCKETS 
 	infraNode->publishBucketStrength2(infraLoc->results, angle_b); 
 	#endif
 
-	infraLoc->calculateStrength(freq_3);
+	infraLoc->calculateStrength(bucket_3);
 	const number_t angle_c = infraLoc->calculateDirection(infraLoc->results);
+	rssi_3 = infraLoc->rssi;
 	#ifdef DEBUG_INFRA_BUCKETS
 	infraNode->publishBucketStrength3(infraLoc->results, angle_c); 
 	#endif
@@ -133,9 +145,15 @@ void loop()
 	const pos2 pose = infraNode->calculatePosition(angle_a, angle_b, angle_c);
 	infraNode->publishPositionMessage(pose);
 
+	// Publish the RSSI
+	infraNode->publishAoAMessage(rssi_1, freq_1, angle_a*RAD_TO_DEG);
+	infraNode->publishAoAMessage(rssi_2, freq_2, angle_b*RAD_TO_DEG);
+	infraNode->publishAoAMessage(rssi_3, freq_3, angle_c*RAD_TO_DEG);
+
 	// Tick the microROS executor
 	infraNode->update();
 
+	// If a position update was received, apply it
 	if(infraNode->positionUpdated)
 		infraNode->updatePositions();
 

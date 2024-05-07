@@ -5,6 +5,7 @@
 
 #include <micro_ros_platformio.h>
 
+#include "infraloc_interfaces/msg/angle_of_attack_mod.h"
 #include "infraloc_interfaces/msg/bucket_strength.h"
 #include "infraloc_interfaces/msg/infra_data.h"
 #include "infraloc_interfaces/srv/beacon_angle.h"
@@ -15,6 +16,12 @@
 #include "rcl/publisher.h"
 #include <rmw/error_handling.h>
 
+#ifdef MICRO_ROS_TRANSPORT_ARDUINO_WIFI
+#include <LittleFS.h>
+#include <lwip/inet.h>
+#include "cpp/INIReader.h"
+#endif
+
 #ifdef INFRA_POS_3D
 // https://github.com/ros2/common_interfaces/tree/rolling/geometry_msgs/msg
 #include "geometry_msgs/msg/pose_stamped.h"
@@ -24,6 +31,9 @@
 #include <micro_ros_utilities/type_utilities.h>
 
 #define NUM_HANDLES_NEEDED (RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1)
+
+// Config file contains SSID, passwd, agent_ip and client_port in category [edurob]
+#define CONFIG_FNAME "/config.ini"
 
 bool on_parameter_changed(const Parameter* old_param, const Parameter* new_param, void* context);
 
@@ -57,9 +67,47 @@ void InfraNode::error_loop() {
 	}
 }
 
+int InfraNode::loadConfig()
+{
+	File f = LittleFS.open(CONFIG_FNAME, "r");
+	char buff[512];
+	f.readBytes(buff, sizeof(buff));
+
+	INIReader reader(buff, sizeof(buff));
+	if(reader.ParseError() != 0)
+		return -1;
+
+	std::string ssid = reader.GetString("edurob", "SSID", "INVALID");
+	std::string passwd = reader.GetString("edurob", "passwd", "NOTAPASSWORD");
+	std::string agent_ip = reader.GetString("edurob", "agent_ip", "192.168.1.1");
+	int64_t port = reader.GetInteger64("edurob", "client_port", 8888);
+	
+	// Connect to uROS Agent via WiFi
+	set_microros_wifi_transports(
+		(char*) ssid.c_str(), (char*) passwd.c_str(), 
+		IPAddress(inet_addr(agent_ip.c_str())), port
+	);
+
+	return 0;
+}
+
 int InfraNode::init()
 {
+	#ifdef MICRO_ROS_TRANSPORT_ARDUINO_WIFI
+	//loadConfig();
+
+	std::string ssid = "Neulandfunk";
+	std::string passwd = "Lindemann36";
+	std::string agent_ip = "192.168.178.197";
+
+	set_microros_wifi_transports(
+		(char*) ssid.c_str(), (char*) passwd.c_str(), 
+		IPAddress(inet_addr(agent_ip.c_str())), 8888
+	);
+	#else
 	set_microros_serial_transports(Serial);
+	#endif
+
 
 	allocator = rcl_get_default_allocator();
 
@@ -83,6 +131,7 @@ int InfraNode::init()
 	rmw_uros_sync_session(timeout_ms);
 
 	createParameterServer();
+	createAoAMessage();
 	createPositionMessage();
 
 	#ifdef DEBUG_INFRA_BUCKETS
@@ -229,6 +278,22 @@ int InfraNode::publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS
 }
 #endif
 
+int InfraNode::createAoAMessage()
+{
+	const char* topic_name = "aoa";
+
+	// Get message type support
+	const rosidl_message_type_support_t* type_support =
+		ROSIDL_GET_MSG_TYPE_SUPPORT(infraloc_interfaces, msg, AngleOfAttackMod);
+
+	// Creates a reliable rcl publisher
+	rcl_ret_t rc = rclc_publisher_init_default(
+		&aoaPublisher, &node, type_support, topic_name
+	);
+
+	return rc;
+}
+
 /* 
  * In theory, Pose2D is deprecated. However I don't want to send a 
  * z-component plus a quaternion from a resource constrained device if they
@@ -247,12 +312,22 @@ int InfraNode::createPositionMessage()
 		ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Pose2D);
 	#endif
 
-	// Creates a reliable rcl publisher
-	rcl_ret_t rc = rclc_publisher_init_best_effort(
+	// Creates a best effort rcl publisher
+	rcl_ret_t rc = rclc_publisher_init_default(
 		&positionPublisher, &node, type_support, topic_name
 	);
 
 	return rc;
+}
+
+int InfraNode::publishAoAMessage(float rssi, float freq, float angle)
+{
+	infraloc_interfaces__msg__AngleOfAttackMod msg;
+	msg.rssi = rssi;
+	msg.freq = freq;
+	msg.angle = angle;
+
+	return rcl_publish(&aoaPublisher, &msg, NULL);
 }
 
 int InfraNode::publishPositionMessage(const pos2 &pose)

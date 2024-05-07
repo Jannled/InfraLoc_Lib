@@ -36,10 +36,14 @@ public:
 	);
 	~InfraLoc();
 
-	std::array<number_t, INFRALOC_NUM_CHANNELS> results;
-	std::array<std::array<uint16_t, N>, INFRALOC_NUM_CHANNELS> captureBuff;
 	uint32_t sample_freq;
 
+	// Buffer that stores the results of the calculations
+	std::array<number_t, INFRALOC_NUM_CHANNELS> results;
+	std::array<std::array<uint16_t, N>, INFRALOC_NUM_CHANNELS> captureBuff;
+	float rssi;
+
+	//
 	void startSampling(uint16_t* buffer, size_t numSamples);
 	void stopSampling();
 	void switchChannels(const uint8_t channel);

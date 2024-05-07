@@ -24,9 +24,11 @@ private:
 
 	static rclc_parameter_server_t param_server;
 
+	rcl_publisher_t aoaPublisher;
 	rcl_publisher_t positionPublisher;
 
 	int createParameterServer();
+	int createAoAMessage();
 	int createPositionMessage();
 
 	#ifdef DEBUG_INFRA_BUCKETS
@@ -37,6 +39,10 @@ private:
 	int createStrengthMessage();
 	int createStrengthMessage2();
 	int createStrengthMessage3();
+	#endif
+
+	#ifdef MICRO_ROS_TRANSPORT_ARDUINO_WIFI
+	int loadConfig();
 	#endif
 
 public:
@@ -66,6 +72,7 @@ public:
 	#endif
 
 	int publishPositionMessage(const pos2 &pose);
+	int publishAoAMessage(float rssi, float freq, float angle);
 
 	static void error_loop();
 
