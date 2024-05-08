@@ -1,6 +1,8 @@
 #ifdef MICRO_ROS_ENABLED
 #include "InfraLoc_Node.hpp"
 
+#include "private_config.h"
+
 #include <Arduino.h>
 
 #include <micro_ros_platformio.h>
@@ -96,13 +98,9 @@ int InfraNode::init()
 	#ifdef MICRO_ROS_TRANSPORT_ARDUINO_WIFI
 	//loadConfig();
 
-	std::string ssid = "Neulandfunk";
-	std::string passwd = "Lindemann36";
-	std::string agent_ip = "192.168.178.197";
-
 	set_microros_wifi_transports(
-		(char*) ssid.c_str(), (char*) passwd.c_str(), 
-		IPAddress(inet_addr(agent_ip.c_str())), 8888
+		AGENT_SSID, AGENT_PASSWD,
+		IPAddress(inet_addr(AGENT_IP)), AGENT_PORT
 	);
 	#else
 	set_microros_serial_transports(Serial);

@@ -45,3 +45,4 @@ extra_packages/**/log
 
 # Sensitive files
 data/config.ini
+include/private_config.h
