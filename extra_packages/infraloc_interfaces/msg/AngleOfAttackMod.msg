@@ -1,6 +1,6 @@
 # The angle of attack of a modulated signal 
 
-# Recieved signal strength indicator
+# Received signal strength indicator
 float32 rssi 
 
 # The frequency center of the signal
