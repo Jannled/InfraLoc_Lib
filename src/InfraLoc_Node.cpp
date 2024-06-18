@@ -134,8 +134,6 @@ int InfraNode::init()
 
 	#ifdef DEBUG_INFRA_BUCKETS
 	createStrengthMessage();
-	createStrengthMessage2();
-	createStrengthMessage3();
 	#endif
 
 	return RCL_RET_OK;
@@ -213,66 +211,16 @@ int InfraNode::createStrengthMessage()
 	return rc;
 }
 
-int InfraNode::createStrengthMessage2()
-{
-	const char* topic_name = "bucket_strength2";
-
-	// Get message type support
-	const rosidl_message_type_support_t* type_support =
-		ROSIDL_GET_MSG_TYPE_SUPPORT(infraloc_interfaces, msg, BucketStrength);
-
-	// Creates a reliable rcl publisher
-	rcl_ret_t rc = rclc_publisher_init_best_effort(
-		&strengthPublisher2, &node, type_support, topic_name
-	);
-
-	return rc;
-}
-
-int InfraNode::createStrengthMessage3()
-{
-	const char* topic_name = "bucket_strength3";
-
-	// Get message type support
-	const rosidl_message_type_support_t* type_support =
-		ROSIDL_GET_MSG_TYPE_SUPPORT(infraloc_interfaces, msg, BucketStrength);
-
-	// Creates a reliable rcl publisher
-	rcl_ret_t rc = rclc_publisher_init_best_effort(
-		&strengthPublisher3, &node, type_support, topic_name
-	);
-
-	return rc;
-}
-
-int InfraNode::publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle)
+int InfraNode::publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, const number_t angle, const float freq)
 {
 	infraloc_interfaces__msg__BucketStrength msg;
 	for(size_t i=0; i<INFRALOC_NUM_CHANNELS; i++)
 		msg.bucket_strength[i] = values.at(i);
+
 	msg.angle = angle;
+	msg.freq = freq;
 
 	return rcl_publish(&strengthPublisher, &msg, NULL);
-}
-
-int InfraNode::publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle)
-{
-	infraloc_interfaces__msg__BucketStrength msg;
-	for(size_t i=0; i<INFRALOC_NUM_CHANNELS; i++)
-		msg.bucket_strength[i] = values.at(i);
-	msg.angle = angle;
-
-	return rcl_publish(&strengthPublisher2, &msg, NULL);
-}
-
-int InfraNode::publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle)
-{
-	infraloc_interfaces__msg__BucketStrength msg;
-	for(size_t i=0; i<INFRALOC_NUM_CHANNELS; i++)
-		msg.bucket_strength[i] = values.at(i);
-	msg.angle = angle;
-
-	return rcl_publish(&strengthPublisher3, &msg, NULL);
 }
 #endif
 

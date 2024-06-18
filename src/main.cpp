@@ -124,21 +124,21 @@ void loop()
 	const number_t angle_a = infraLoc->calculateDirection(infraLoc->results);
 	rssi_1 = infraLoc->rssi;
 	#ifdef DEBUG_INFRA_BUCKETS 
-	infraNode->publishBucketStrength(infraLoc->results, angle_a); 
+	infraNode->publishBucketStrength(infraLoc->results, angle_a, freq_1); 
 	#endif
 
 	infraLoc->calculateStrength(bucket_2);
 	const number_t angle_b = infraLoc->calculateDirection(infraLoc->results);
 	rssi_2 = infraLoc->rssi;
 	#ifdef DEBUG_INFRA_BUCKETS 
-	infraNode->publishBucketStrength2(infraLoc->results, angle_b); 
+	infraNode->publishBucketStrength(infraLoc->results, angle_b, freq_2); 
 	#endif
 
 	infraLoc->calculateStrength(bucket_3);
 	const number_t angle_c = infraLoc->calculateDirection(infraLoc->results);
 	rssi_3 = infraLoc->rssi;
 	#ifdef DEBUG_INFRA_BUCKETS
-	infraNode->publishBucketStrength3(infraLoc->results, angle_c); 
+	infraNode->publishBucketStrength(infraLoc->results, angle_c, freq_3); 
 	#endif
 
 	// Use the the 3 angles for planar resection and publish to topic

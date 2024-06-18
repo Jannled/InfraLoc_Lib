@@ -33,12 +33,8 @@ private:
 
 	#ifdef DEBUG_INFRA_BUCKETS
 	rcl_publisher_t strengthPublisher;
-	rcl_publisher_t strengthPublisher2;
-	rcl_publisher_t strengthPublisher3;
 
 	int createStrengthMessage();
-	int createStrengthMessage2();
-	int createStrengthMessage3();
 	#endif
 
 	#ifdef MICRO_ROS_TRANSPORT_ARDUINO_WIFI
@@ -66,9 +62,7 @@ public:
 	int update();
 
 	#ifdef DEBUG_INFRA_BUCKETS
-	int publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
-	int publishBucketStrength2(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
-	int publishBucketStrength3(std::array<number_t, INFRALOC_NUM_CHANNELS> values, number_t angle);
+	int publishBucketStrength(std::array<number_t, INFRALOC_NUM_CHANNELS> values, const number_t angle, const float freq);
 	#endif
 
 	int publishPositionMessage(const pos2 &pose);
