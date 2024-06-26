@@ -43,6 +43,9 @@ extra_packages/**/build
 extra_packages/**/install
 extra_packages/**/log
 
-# Sensitive files
+# Sensitive files/secrets
 data/config.ini
 include/private_config.h
+
+# Python
+.venv

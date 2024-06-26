@@ -24,9 +24,9 @@
 #define SAMPLE_FREQ 400000u	// 200kHz
 
 // Sender Frequencies: 20kHz, 30kHz, 40kHz, 50kHz
-constexpr uint freq_1 = 20000; // Hz
-constexpr uint freq_2 = 30000; // Hz
-constexpr uint freq_3 = 40000; // Hz
+constexpr uint freq_1 = 12500; // Hz
+constexpr uint freq_2 = 15625; // Hz
+constexpr uint freq_3 = 18750; // Hz
 
 // Pin Definitions
 constexpr uint8_t MUX_S0 = 6u;

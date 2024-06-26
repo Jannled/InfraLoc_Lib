@@ -108,7 +108,7 @@ number_t InfraLoc<N>::calculateDirection(const std::array<number_t, INFRALOC_NUM
 	const number_t seg_b = val_cw / val_ccw;
 	const number_t seg_d = val_ccw / val_cw;
 
-	rssi = magnitudes[max_chan] + magnitudes[max(val_cw, val_ccw)];
+	rssi = magnitudes[max_chan] + max(val_cw, val_ccw);
 
 	return (M_TWOPI/INFRALOC_NUM_CHANNELS)*max_chan - pieSize/(seg_b+offset) + pieSize/(seg_d+offset);
 }
