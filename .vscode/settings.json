@@ -162,6 +162,7 @@
 		"rcutils",
 		"rfft",
 		"rfftfreq",
+		"rmse",
 		"ROSIDL",
 		"rssi",
 		"scilimits",
