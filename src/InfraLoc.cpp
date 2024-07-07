@@ -92,7 +92,7 @@ number_t InfraLoc<N>::getFrequencyComponent(const float k, const uint8_t channel
 template<size_t N>
 number_t InfraLoc<N>::calculateDirection(const std::array<number_t, INFRALOC_NUM_CHANNELS> &magnitudes)
 {
-	const number_t pieSize = M_PI/INFRALOC_NUM_CHANNELS; // = 360.0f/INFRALOC_NUM_CHANNELS/2.0f;
+	constexpr number_t pieSize = M_PI/INFRALOC_NUM_CHANNELS; // = 360.0f/INFRALOC_NUM_CHANNELS/2.0f;
 
 	uint8_t max_chan = 0;
 	for(uint8_t i=0; i<INFRALOC_NUM_CHANNELS; i++)
@@ -101,22 +101,33 @@ number_t InfraLoc<N>::calculateDirection(const std::array<number_t, INFRALOC_NUM
 			max_chan = i;
 	}
 
+	#ifdef OLD_SUB_ANGLE
 	const number_t val_cw  = magnitudes[MODULO(max_chan + 1, INFRALOC_NUM_CHANNELS)];
 	const number_t val_ccw = magnitudes[MODULO(max_chan - 1, INFRALOC_NUM_CHANNELS)];
 
 	rssi = magnitudes[max_chan] + max(val_cw, val_ccw);
 
-	#ifdef OLD_SUB_ANGLE
 	const number_t offset = 0.85f;
 	const number_t seg_b = val_cw / val_ccw;
 	const number_t seg_d = val_ccw / val_cw;
 
 	return (M_TWOPI/INFRALOC_NUM_CHANNELS)*max_chan - pieSize/(seg_b+offset) + pieSize/(seg_d+offset);
 	#else
-	const number_t neighbour_sum = val_cw + val_ccw;
-	const number_t factor = (val_cw - val_ccw)/neighbour_sum;
+	number_t val = 				magnitudes[max_chan];
+	const number_t val_cw = 	magnitudes[MODULO(max_chan + 1, INFRALOC_NUM_CHANNELS)];
+	number_t val_ccw = 			magnitudes[MODULO(max_chan - 1, INFRALOC_NUM_CHANNELS)];
 
-	return (M_TWOPI/INFRALOC_NUM_CHANNELS)*max_chan + pieSize*(factor - 0.5f);
+	if(val_cw > val_ccw)
+	{
+		max_chan = MODULO(max_chan + 1, INFRALOC_NUM_CHANNELS);
+		val_ccw = val;
+		val = val_cw;
+	}
+
+	const number_t factor = (val - val_ccw)/(val + val_ccw);
+
+	rssi = magnitudes[max_chan] + max(val_cw, val_ccw);
+	return pieSize*max_chan + pieSize*factor;
 	#endif
 }
 

@@ -7,6 +7,7 @@
 
 #ifdef MICRO_ROS_ENABLED
 #include "InfraLoc_Node.hpp"
+#include <rmw/error_handling.h>
 #endif
 
 #include <pico.h>
@@ -17,7 +18,6 @@
 #ifdef ARDUINO_ARCH_MBED
 #include <mbed_error.h>
 #endif
-#include <rmw/error_handling.h>
 
 // Setting for InfraLoc
 #define CAPTURE_DEPTH 512
@@ -158,7 +158,7 @@ void loop()
 		infraNode->updatePositions();
 
 	#else
-	printMagnitudes(FREQ_BIN);
+	printMagnitudes(bucket_1);
 	//frequencySweep();
 	//printRawADC();
 	#endif
@@ -191,18 +191,9 @@ void outputPWM(uint8_t gpio_pin, unsigned int frequency, unsigned int dutycycle)
  */
 void printMagnitudes(unsigned int fourierBin)
 {
-	// Measure the light
-	infraLoc->update();
-	
-	// Calculate Beacon 1
-	infraLoc->calculateStrength(99);
-	number_t angle = infraLoc->calculateDirection(infraLoc->results);
-	printArray(infraLoc->results, angle);
-
-	// Calculate Beacon 2
-	infraLoc->calculateStrength(128);
-	angle = infraLoc->calculateDirection(infraLoc->results);
-	printArray(infraLoc->results, angle);
+	infraLoc->calculateStrength(fourierBin);
+	const number_t angle = infraLoc->calculateDirection(infraLoc->results);
+	printArray(infraLoc->results, (number_t) (angle*RAD_TO_DEG));
 }
 
 /**
