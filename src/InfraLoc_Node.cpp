@@ -40,7 +40,7 @@
 bool on_parameter_changed(const Parameter* old_param, const Parameter* new_param, void* context);
 
 // Only works for input angles 0 - 2π (0° - 360°), to avoid having to implement the formula with divisions
-#define SMALLER_ANGLE(x) ((x) > M_PI ? ((x) - M_TWOPI) : (x))
+#define SMALLER_ANGLE(x) min(x, M_TWOPI - x)
 
 // Constructor. Not really used
 InfraNode::InfraNode()
@@ -322,9 +322,9 @@ int InfraNode::publishPositionMessage(const pos2 &pose)
 
 pos2 InfraNode::calculatePosition(const number_t angle_a, const number_t angle_b, const number_t angle_c)
 {
-	volatile number_t alpha = abs(SMALLER_ANGLE(angle_b - angle_c));
-	volatile number_t beta = abs(SMALLER_ANGLE(angle_c - angle_a));
-	volatile number_t gamma = abs(SMALLER_ANGLE(angle_a - angle_b));
+	volatile number_t alpha = SMALLER_ANGLE(abs(angle_b - angle_c));
+	volatile number_t beta = SMALLER_ANGLE(abs(angle_c - angle_a));
+	volatile number_t gamma = SMALLER_ANGLE(abs(angle_a - angle_b));
 
 	vec2 pos = tienstraMethod(pos_a, pos_b, pos_c, alpha, beta, gamma, ang_a_bc, ang_b_ac, ang_c_ab);
 
