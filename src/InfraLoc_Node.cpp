@@ -40,7 +40,7 @@
 bool on_parameter_changed(const Parameter* old_param, const Parameter* new_param, void* context);
 
 // Works for input angles -2π to 2π (-360° to 360°)
-#define SMALLER_ANGLE(x) min(max((x), M_TWOPI - (x)), M_TWOPI*2 - (x))
+#define SMALLER_ANGLE(x) min(max((x), M_TWOPI - (x)), M_TWOPI - (x))
 
 // Constructor. Not really used
 InfraNode::InfraNode()
