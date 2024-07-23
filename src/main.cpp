@@ -74,6 +74,9 @@ void my_mbed_error_handler(const mbed_error_ctx *error_ctx)
 void setup()
 {
 	// Enable Serial, it might be needed by microROS
+	I_SERIAL.setRX(1);
+	I_SERIAL.setTX(0);
+	I_SERIAL.begin(115200);
 	Serial.begin(115200);
 
 	#ifdef ARDUINO_ARCH_MBED
@@ -214,7 +217,7 @@ void frequencySweep()
 		printArray(results, (int) k);
 	}
 
-	Serial.println("------------------------------------------------------------------");
+	I_SERIAL.println("------------------------------------------------------------------");
 }
 
 /**
