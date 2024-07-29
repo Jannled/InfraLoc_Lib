@@ -74,14 +74,16 @@ void my_mbed_error_handler(const mbed_error_ctx *error_ctx)
 void setup()
 {
 	// Enable Serial, it might be needed by microROS
-	I_SERIAL.setRX(1);
-	I_SERIAL.setTX(0);
-	I_SERIAL.begin(115200);
+	//I_SERIAL.setRX(1);
+	//I_SERIAL.setTX(0);
+	//I_SERIAL.begin(115200);
 	Serial.begin(115200);
 
 	#ifdef ARDUINO_ARCH_MBED
 	mbed_set_error_hook(my_mbed_error_handler);
 	#endif
+
+	pinMode(22, OUTPUT);
 
 	pinMode(LED_BUILTIN, OUTPUT);
 	pinMode(USR_LED_1, OUTPUT);
@@ -114,7 +116,9 @@ void loop()
 	constexpr uint bucket_3 = (freq_3*NUM_SAMPLES)/SAMPLE_FREQ;
 
 	// Gather infrared data
+	gpio_put(22, true);
 	infraLoc->update();
+	gpio_put(22, false);
 
 	#ifdef MICRO_ROS_ENABLED
 
