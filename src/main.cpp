@@ -40,6 +40,8 @@ constexpr uint8_t USR_LED_2 = 3;
 constexpr uint8_t USR_BTN = 21;
 constexpr uint8_t PWM_PIN = 20;
 
+constexpr uint8_t PIN_TIMING = 22;
+
 // 
 InfraLoc<CAPTURE_DEPTH>* infraLoc;
 
@@ -83,7 +85,7 @@ void setup()
 	mbed_set_error_hook(my_mbed_error_handler);
 	#endif
 
-	pinMode(22, OUTPUT);
+	pinMode(PIN_TIMING, OUTPUT);
 
 	pinMode(LED_BUILTIN, OUTPUT);
 	pinMode(USR_LED_1, OUTPUT);
@@ -116,9 +118,7 @@ void loop()
 	constexpr uint bucket_3 = (freq_3*NUM_SAMPLES)/SAMPLE_FREQ;
 
 	// Gather infrared data
-	gpio_put(22, true);
 	infraLoc->update();
-	gpio_put(22, false);
 
 	#ifdef MICRO_ROS_ENABLED
 
@@ -127,6 +127,7 @@ void loop()
 	float rssi_3 = 0;
 
 	// Calculate all 3 angles
+	//gpio_put(PIN_TIMING, 1);
 	infraLoc->calculateStrength(bucket_1);
 	const number_t angle_a = infraLoc->calculateDirection(infraLoc->results);
 	rssi_1 = infraLoc->rssi;
@@ -147,6 +148,7 @@ void loop()
 	#ifdef DEBUG_INFRA_BUCKETS
 	infraNode->publishBucketStrength(infraLoc->results, angle_c, freq_3); 
 	#endif
+	//gpio_put(PIN_TIMING, 0);
 
 	// Use the the 3 angles for planar resection and publish to topic
 	const pos2 pose = infraNode->calculatePosition(angle_a, angle_b, angle_c);
